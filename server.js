@@ -13,18 +13,39 @@ function init() {
         }
     });
 
-    peer.on("open", function(id) {
+    peer.on("open", (id) => {
         $("#roomCode").append(id)
     });
 
-    peer.on("connection", function(conn) {
-        clients.push(conn);
-        console.log("Connected to", conn.peer);
+    peer.on("connection", (conn) => {
+        let client = {conn: conn};
+        clients.push(client);
+        updateClientList();
+
+        conn.on("data", (data) => {
+            if (data.type === "setName") {
+                client.name = data.name;
+                updateClientList();
+            }
+        });
+
+        conn.on("close", () => {
+            clients = clients.filter(c => c !== client);
+            updateClientList();
+        });
     });
 }
 
+function updateClientList() {
+    if (clients.length === 0) {
+        $("#clientList").html("");
+    } else {
+        $("#clientList").html($("<li>").html(clients.map(client => client.name).join("</li><li>")));
+    }
+}
+
 function send(data) {
-    clients.forEach((conn) => { conn.send(data); });
+    clients.forEach((client) => { client.conn.send(data); });
 }
 
 if (util.supports.data) {

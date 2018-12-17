@@ -3,8 +3,9 @@
     <title>Trivia Night Client</title>
 </head>
 <body>
-    <div id="networkDiv">
-        <input type="text" autofocus name="roomCode" id="roomCode" placeholder="Enter Room Code" maxlength="4" required>
+    <div id="networkDiv" style="display: flex; flex-direction: column; width: min-content;">
+        <input type="text" autofocus name="nickname" id="nickname" placeholder="Enter Name">
+        <input type="text" name="roomCode" id="roomCode" placeholder="Enter Room Code" maxlength="4">
         <input type="button" id="connBtn" value="Connect">
     </div>
 

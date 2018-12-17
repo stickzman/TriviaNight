@@ -1,12 +1,20 @@
 let peer;
 
 function start() {
-    let conn = peer.connect($("#roomCode").val());
-    $("#connBtn").attr("disabled", "disabled");
-    $("#roomCode").attr("disabled", "disabled");
+    if ($("#roomCode").val().length <= 0) {
+        console.log("Please enter a Room Code");
+        return;
+    }
+
+    conn = peer.connect($("#roomCode").val());
+    $("#networkDiv input").attr("disabled", "disabled");
 
     conn.on("open", () => {
         $("#networkDiv").hide();
+        conn.send({
+            type: "setName",
+            name: $("#nickname").val()
+        });
     });
 
     conn.on("data", (data) => {
@@ -14,14 +22,15 @@ function start() {
     });
 }
 
+
+
 function init() {
     peer = new Peer({key: 'lwjd5qra8257b9'});
 
     peer.on("error", (err) => {
         if (err.type === "invalid-id" || err.type === "peer-unavailable") {
             console.log("Invalid Room Code")
-            $("#connBtn").removeAttr("disabled");
-            $("#roomCode").removeAttr("disabled");
+            $("#networkDiv input").removeAttr("disabled");
         } else {
             throw err;
         }
@@ -32,7 +41,7 @@ function init() {
     });
 
     $("#connBtn").on("click", start);
-    $("#roomCode").on("keypress", function(e) {
+    $("#networkDiv").on("keypress", function(e) {
         (e.key === "Enter") ? $("#connBtn").click() : null;
     });
 }
