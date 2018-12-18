@@ -1,14 +1,19 @@
-let peer, id;
+let host = "localhost";
+let port = 3000;
+let path = "/api";
+
+let peer;
 let clients = [];
 
-function init() {
-    id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
-    peer = new Peer(id, {host: 'localhost', port: 3000, path: '/api'});
+function createHost() {
+    let id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
+    peer = new Peer(id, {host: host, port: port, path: path});
 
     peer.on("error", (err) => {
         if (err.type === "unavailable-id"){
-            init();
+            createHost(); //Generate a new random ID and try again
         } else {
+            $("#roomCode").html(err); //Display error
             throw err;
         }
     });
@@ -17,22 +22,24 @@ function init() {
         $("#roomCode").append(id)
     });
 
-    peer.on("connection", (conn) => {
-        let client = {conn: conn};
-        clients.push(client);
-        updateClientList();
+    peer.on("connection", onConnect);
+}
 
-        conn.on("data", (data) => {
-            if (data.type === "setName") {
-                client.name = data.name;
-                updateClientList();
-            }
-        });
+function onConnect(conn) {
+    let client = {conn: conn};
+    clients.push(client);
+    updateClientList();
 
-        conn.on("close", () => {
-            clients = clients.filter(c => c !== client);
+    conn.on("data", (data) => {
+        if (data.type === "setName") {
+            client.name = data.name;
             updateClientList();
-        });
+        }
+    });
+
+    conn.on("close", () => {
+        clients = clients.filter(c => c !== client);
+        updateClientList();
     });
 }
 
@@ -49,7 +56,7 @@ function send(data) {
 }
 
 if (util.supports.data) {
-    init();
+    createHost();
 } else {
     console.log("Sorry, your browser version is not supported.");
 }

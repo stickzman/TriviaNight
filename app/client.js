@@ -1,7 +1,11 @@
+let host = "localhost";
+let port = 3000;
+let path = "/api";
+
 let peer;
 
-function start() {
-    if ($("#roomCode").val().length <= 0) {
+function connect() {
+    if ($("#roomCode").val().length == 0) {
         console.log("Please enter a Room Code");
         return;
     }
@@ -23,9 +27,8 @@ function start() {
 }
 
 
-
 function init() {
-    peer = new Peer({host: 'localhost', port: 3000, path: '/api'});
+    peer = new Peer({host: host, port: port, path: path});
 
     peer.on("error", (err) => {
         if (err.type === "invalid-id" || err.type === "peer-unavailable") {
@@ -40,8 +43,8 @@ function init() {
         console.log('My peer ID is: ' + id);
     });
 
-    $("#connBtn").on("click", start);
-    $("#networkDiv").on("keypress", function(e) {
+    $("#connBtn").on("click", connect);
+    $("#networkDiv").on("keypress", (e) => {
         (e.key === "Enter") ? $("#connBtn").click() : null;
     });
 }
