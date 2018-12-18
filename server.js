@@ -1,55 +1,12 @@
-let peer, id;
-let clients = [];
+const express = require('express');
+const app = express();
+var ExpressPeerServer = require('peer').ExpressPeerServer;
+const port = 3000;
 
-function init() {
-    id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
-    peer = new Peer(id, {key: 'lwjd5qra8257b9'});
+app.use(express.static(__dirname));
 
-    peer.on("error", (err) => {
-        if (err.type === "unavailable-id"){
-            init();
-        } else {
-            throw err;
-        }
-    });
+var server = app.listen(port, () => console.log(`Listening on port ${port}!`));
 
-    peer.on("open", (id) => {
-        $("#roomCode").append(id)
-    });
+var peerServer = ExpressPeerServer(server, {debug: true});
 
-    peer.on("connection", (conn) => {
-        let client = {conn: conn};
-        clients.push(client);
-        updateClientList();
-
-        conn.on("data", (data) => {
-            if (data.type === "setName") {
-                client.name = data.name;
-                updateClientList();
-            }
-        });
-
-        conn.on("close", () => {
-            clients = clients.filter(c => c !== client);
-            updateClientList();
-        });
-    });
-}
-
-function updateClientList() {
-    if (clients.length === 0) {
-        $("#clientList").html("");
-    } else {
-        $("#clientList").html($("<li>").html(clients.map(client => client.name).join("</li><li>")));
-    }
-}
-
-function send(data) {
-    clients.forEach((client) => { client.conn.send(data); });
-}
-
-if (util.supports.data) {
-    init();
-} else {
-    console.log("Sorry, your browser version is not supported.");
-}
+app.use('/api', peerServer);

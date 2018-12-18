@@ -25,7 +25,7 @@ function start() {
 
 
 function init() {
-    peer = new Peer({key: 'lwjd5qra8257b9'});
+    peer = new Peer({host: 'localhost', port: 3000, path: '/api'});
 
     peer.on("error", (err) => {
         if (err.type === "invalid-id" || err.type === "peer-unavailable") {

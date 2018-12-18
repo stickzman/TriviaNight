@@ -1,0 +1,27 @@
+{
+  "name": "trivianight",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stickzman/TriviaNight.git"
+  },
+  "author": "Dan Ahl",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stickzman/TriviaNight/issues"
+  },
+  "homepage": "https://github.com/stickzman/TriviaNight#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "peer": "^0.2.10"
+  }
+}
