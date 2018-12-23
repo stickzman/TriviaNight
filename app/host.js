@@ -5,6 +5,36 @@ let path = "/api";
 let peer;
 let clients = [];
 
+let sessionToken = localStorage.getItem("sessionToken");
+if (sessionToken === null) {
+    getNewToken();
+}
+
+async function getNewToken() {
+    let data = await jQuery.getJSON("https://opentdb.com/api_token.php?command=request");
+    console.log(data.response_message);
+    sessionToken = data.token;
+    localStorage.setItem("sessionToken", sessionToken);
+}
+
+async function resetToken() {
+    let res = await jQuery.getJSON("https://opentdb.com/api_token.php?command=reset&token=" + sessionToken);
+    console.log("All questions seen, resetting session token...");
+}
+
+
+async function getNextQuestion() {
+    let res = await jQuery.getJSON("https://opentdb.com/api.php?amount=1&type=multiple&token=" + sessionToken);
+    switch (res.response_code) {
+        case 0: return res.results[0];
+        case 1: console.error("Open Trivia DB: Search found no results."); return null;
+        case 2: console.error("Open Trivia DB: Invalid query parameters."); return null;
+        case 3: await getNewToken(); return getNextQuestion();
+        case 4: await resetToken(); return getNextQuestion();
+    }
+    return  res.results[0];
+}
+
 function createHost() {
     let id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
     peer = new Peer(id, {host: host, port: port, path: path});
