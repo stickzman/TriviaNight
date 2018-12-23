@@ -1,5 +1,5 @@
-let host = "localhost";
-let port = 3000;
+let host = window.location.hostname;
+let port = window.location.port;
 let path = "/api";
 
 let peer;
