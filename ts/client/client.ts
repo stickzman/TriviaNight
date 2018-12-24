@@ -3,7 +3,7 @@ let host: string = window.location.hostname;
 let port: string = window.location.port;
 let path: string = "/api";
 
-let peer;
+let peer, conn;
 
 function connect() {
     if ($("#roomCode").val().length == 0) {
@@ -11,7 +11,7 @@ function connect() {
         return;
     }
 
-    let conn = peer.connect($("#roomCode").val());
+    conn = peer.connect($("#roomCode").val());
     $("#networkDiv input").attr("disabled", "disabled");
 
     conn.on("open", () => {

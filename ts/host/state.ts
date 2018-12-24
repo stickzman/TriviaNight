@@ -1,17 +1,33 @@
 /// <reference path="../common.ts" />
 abstract class State {
-	public enter(): void { }
+	public processData(data, player: client): void {
+		console.log("No data handler specified", data);
+	}
+	public enter(): State { return this; }
 	public changeState(s: State): void { state = s; }
-	public processData(data): void { }
 }
 
 class InitState extends State {
-	public enter() {
+	public enter(): State {
 		$("#menu").show();
+		return this;
 	}
 
 	public changeState(s: State) {
 		$("#menu").hide();
-		state = s;
+		state = s.enter();
+	}
+
+	public processData(data, player: client) {
+		if (data.type === "startGame") {
+			this.changeState(new PreQuesState());
+		}
+	}
+}
+
+class PreQuesState extends State {
+	public enter(): State {
+		$("#PreQuesState").show();
+		return this;
 	}
 }

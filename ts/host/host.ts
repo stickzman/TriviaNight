@@ -4,7 +4,7 @@ let host: string = window.location.hostname;
 let port: string = window.location.port;
 let path: string = "/api";
 
-let peer, state: State = new InitState();
+let peer, state: State = new InitState().enter();
 
 let clients: client[] = [];
 
@@ -69,7 +69,7 @@ function onConnect(conn) {
         }
     });
 
-    conn.on("data", (data) => { state.processData(data); });
+    conn.on("data", (data) => { state.processData(data, client); });
 
     conn.on("close", () => {
         clients = clients.filter(c => c !== client);

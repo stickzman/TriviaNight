@@ -2,13 +2,13 @@
 var host = window.location.hostname;
 var port = window.location.port;
 var path = "/api";
-var peer;
+var peer, conn;
 function connect() {
     if ($("#roomCode").val().length == 0) {
         console.log("Please enter a Room Code");
         return;
     }
-    var conn = peer.connect($("#roomCode").val());
+    conn = peer.connect($("#roomCode").val());
     $("#networkDiv input").attr("disabled", "disabled");
     conn.on("open", function () {
         $("#networkDiv").hide();

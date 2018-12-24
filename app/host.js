@@ -50,9 +50,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var State = /** @class */ (function () {
     function State() {
     }
-    State.prototype.enter = function () { };
+    State.prototype.processData = function (data, player) {
+        console.log("No data handler specified", data);
+    };
+    State.prototype.enter = function () { return this; };
     State.prototype.changeState = function (s) { state = s; };
-    State.prototype.processData = function (data) { };
     return State;
 }());
 var InitState = /** @class */ (function (_super) {
@@ -62,19 +64,36 @@ var InitState = /** @class */ (function (_super) {
     }
     InitState.prototype.enter = function () {
         $("#menu").show();
+        return this;
     };
     InitState.prototype.changeState = function (s) {
         $("#menu").hide();
-        state = s;
+        state = s.enter();
+    };
+    InitState.prototype.processData = function (data, player) {
+        if (data.type === "startGame") {
+            this.changeState(new PreQuesState());
+        }
     };
     return InitState;
+}(State));
+var PreQuesState = /** @class */ (function (_super) {
+    __extends(PreQuesState, _super);
+    function PreQuesState() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    PreQuesState.prototype.enter = function () {
+        $("#PreQuesState").show();
+        return this;
+    };
+    return PreQuesState;
 }(State));
 /// <reference path="../common.ts" />
 /// <reference path="state.ts" />
 var host = window.location.hostname;
 var port = window.location.port;
 var path = "/api";
-var peer, state = new InitState();
+var peer, state = new InitState().enter();
 var clients = [];
 var sessionToken = localStorage.getItem("sessionToken");
 if (sessionToken === null) {
@@ -172,7 +191,7 @@ function onConnect(conn) {
             addPlayer(client);
         }
     });
-    conn.on("data", function (data) { state.processData(data); });
+    conn.on("data", function (data) { state.processData(data, client); });
     conn.on("close", function () {
         clients = clients.filter(function (c) { return c !== client; });
         removePlayer(client);
