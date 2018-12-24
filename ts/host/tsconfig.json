@@ -1,6 +1,7 @@
 {
 	"compileOnSave": true,
     "compilerOptions": {
+		"target": "es5",
 		"lib": ["dom", "es2017"],
         "outFile": "../../app/host.js",
         "sourceMap": true

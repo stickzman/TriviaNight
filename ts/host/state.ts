@@ -1,6 +1,6 @@
 /// <reference path="../common.ts" />
 abstract class State {
-	public processData(data, player: client): void {
+	public processData(data, player: Client): void {
 		console.log("No data handler specified", data);
 	}
 	public enter(): State { return this; }
@@ -18,7 +18,7 @@ class InitState extends State {
 		state = s.enter();
 	}
 
-	public processData(data, player: client) {
+	public processData(data, player: Client) {
 		if (data.type === "startGame") {
 			this.changeState(new PreQuesState());
 		}

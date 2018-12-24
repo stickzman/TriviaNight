@@ -1,4 +1,5 @@
 /// <reference path="../common.ts" />
+/// <reference path="client.ts" />
 /// <reference path="state.ts" />
 let host: string = window.location.hostname;
 let port: string = window.location.port;
@@ -6,7 +7,7 @@ let path: string = "/api";
 
 let peer, state: State = new InitState().enter();
 
-let clients: client[] = [];
+let clients: Client[] = [];
 
 let sessionToken: string = localStorage.getItem("sessionToken");
 if (sessionToken === null) {
@@ -59,30 +60,14 @@ function init() {
 }
 
 function onConnect(conn) {
-    let client = {name: "", score: 0, conn: conn};
+    let client: Client = new Client(conn);
     clients.push(client);
-
-    conn.on("data", (data) => {
-        if (data.type === "setName") {
-            client.name = data.name;
-            addPlayer(client);
-        }
-    });
 
     conn.on("data", (data) => { state.processData(data, client); });
 
     conn.on("close", () => {
         clients = clients.filter(c => c !== client);
-        removePlayer(client);
     });
-}
-
-function addPlayer(p: client) {
-    $(`<div id="pID_${p.conn.id}"><p>${p.name}</p><p>${p.score}</p></div>`).css("padding", "0px 10px").appendTo("#pList");
-}
-
-function removePlayer(p: client) {
-    $("#pID_" + p.conn.id).remove();
 }
 
 function send(data) {

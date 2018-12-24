@@ -46,6 +46,47 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var Client = /** @class */ (function () {
+    function Client(conn, _name, _score) {
+        if (_name === void 0) { _name = ""; }
+        if (_score === void 0) { _score = 0; }
+        var _this = this;
+        this.conn = conn;
+        this._name = _name;
+        this._score = _score;
+        this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>").css("padding", "0px 10px");
+        this.elem.appendTo("#pList");
+        conn.on("data", function (data) {
+            if (data.type === "setName") {
+                _this.name = data.name;
+            }
+        });
+        conn.on("close", function () { _this.elem.remove(); });
+    }
+    Object.defineProperty(Client.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        set: function (n) {
+            this._name = n;
+            this.elem.find(".name").html(n);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Client.prototype, "score", {
+        get: function () {
+            return this._score;
+        },
+        set: function (s) {
+            this._score = s;
+            this.elem.find(".score").html(s);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return Client;
+}());
 /// <reference path="../common.ts" />
 var State = /** @class */ (function () {
     function State() {
@@ -89,6 +130,7 @@ var PreQuesState = /** @class */ (function (_super) {
     return PreQuesState;
 }(State));
 /// <reference path="../common.ts" />
+/// <reference path="client.ts" />
 /// <reference path="state.ts" />
 var host = window.location.hostname;
 var port = window.location.port;
@@ -183,25 +225,12 @@ function init() {
     });
 }
 function onConnect(conn) {
-    var client = { name: "", score: 0, conn: conn };
+    var client = new Client(conn);
     clients.push(client);
-    conn.on("data", function (data) {
-        if (data.type === "setName") {
-            client.name = data.name;
-            addPlayer(client);
-        }
-    });
     conn.on("data", function (data) { state.processData(data, client); });
     conn.on("close", function () {
         clients = clients.filter(function (c) { return c !== client; });
-        removePlayer(client);
     });
-}
-function addPlayer(p) {
-    $("<div id=\"pID_" + p.conn.id + "\"><p>" + p.name + "</p><p>" + p.score + "</p></div>").css("padding", "0px 10px").appendTo("#pList");
-}
-function removePlayer(p) {
-    $("#pID_" + p.conn.id).remove();
 }
 function send(data) {
     clients.forEach(function (client) { client.conn.send(data); });
