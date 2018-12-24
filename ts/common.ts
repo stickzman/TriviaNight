@@ -5,5 +5,6 @@ declare var util: any;
 
 interface client {
 	name: string,
+	score: number,
 	conn: any
 }

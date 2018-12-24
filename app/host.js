@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -34,10 +47,34 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 /// <reference path="../common.ts" />
+var State = /** @class */ (function () {
+    function State() {
+    }
+    State.prototype.enter = function () { };
+    State.prototype.changeState = function (s) { state = s; };
+    State.prototype.processData = function (data) { };
+    return State;
+}());
+var InitState = /** @class */ (function (_super) {
+    __extends(InitState, _super);
+    function InitState() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    InitState.prototype.enter = function () {
+        $("#menu").show();
+    };
+    InitState.prototype.changeState = function (s) {
+        $("#menu").hide();
+        state = s;
+    };
+    return InitState;
+}(State));
+/// <reference path="../common.ts" />
+/// <reference path="state.ts" />
 var host = window.location.hostname;
 var port = window.location.port;
 var path = "/api";
-var peer;
+var peer, state = new InitState();
 var clients = [];
 var sessionToken = localStorage.getItem("sessionToken");
 if (sessionToken === null) {
@@ -127,27 +164,25 @@ function init() {
     });
 }
 function onConnect(conn) {
-    var client = { name: "", conn: conn };
+    var client = { name: "", score: 0, conn: conn };
     clients.push(client);
-    updateClientList();
     conn.on("data", function (data) {
         if (data.type === "setName") {
             client.name = data.name;
-            updateClientList();
+            addPlayer(client);
         }
     });
+    conn.on("data", function (data) { state.processData(data); });
     conn.on("close", function () {
         clients = clients.filter(function (c) { return c !== client; });
-        updateClientList();
+        removePlayer(client);
     });
 }
-function updateClientList() {
-    if (clients.length === 0) {
-        $("#clientList").html("No Players");
-    }
-    else {
-        $("#clientList").html($("<li>").html(clients.map(function (client) { return client.name; }).join("</li><li>")));
-    }
+function addPlayer(p) {
+    $("<div id=\"pID_" + p.conn.id + "\"><p>" + p.name + "</p><p>" + p.score + "</p></div>").css("padding", "0px 10px").appendTo("#pList");
+}
+function removePlayer(p) {
+    $("#pID_" + p.conn.id).remove();
 }
 function send(data) {
     clients.forEach(function (client) { client.conn.send(data); });
