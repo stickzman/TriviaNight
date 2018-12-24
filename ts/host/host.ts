@@ -1,13 +1,13 @@
 /// <reference path="../common.ts" />
-let host = window.location.hostname;
-let port = window.location.port;
-let path = "/api";
+let host: string = window.location.hostname;
+let port: string = window.location.port;
+let path: string = "/api";
 
 let peer;
 
 let clients: client[] = [];
 
-let sessionToken = localStorage.getItem("sessionToken");
+let sessionToken: string = localStorage.getItem("sessionToken");
 if (sessionToken === null) {
     getNewToken();
 }
@@ -34,7 +34,7 @@ async function getNextQuestion() {
         case 3: await getNewToken(); return getNextQuestion();
         case 4: await resetToken(); return getNextQuestion();
     }
-    return  res.results[0];
+    return res.results[0];
 }
 
 function init() {

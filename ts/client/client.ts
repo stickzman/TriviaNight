@@ -1,7 +1,7 @@
 /// <reference path="../common.ts" />
-let host = window.location.hostname;
-let port = window.location.port;
-let path = "/api";
+let host: string = window.location.hostname;
+let port: string = window.location.port;
+let path: string = "/api";
 
 let peer;
 
