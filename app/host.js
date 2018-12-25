@@ -46,6 +46,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+function shuffle(arr) {
+    var t, j;
+    for (var i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+    }
+}
 var Client = /** @class */ (function () {
     function Client(conn, _name, _score) {
         if (_name === void 0) { _name = ""; }
@@ -140,6 +149,7 @@ var QuestionState = /** @class */ (function (_super) {
         _this.allowBuzz = false;
         _this.answers = ques.incorrect_answers.slice();
         _this.answers.push(ques.correct_answers);
+        shuffle(_this.answers);
         console.log(ques);
         return _this;
     }

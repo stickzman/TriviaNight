@@ -43,6 +43,7 @@ class QuestionState extends State {
 		super();
 		this.answers = ques.incorrect_answers.slice();
 		this.answers.push(ques.correct_answers);
+		shuffle(this.answers);
 		console.log(ques);
 	}
 
