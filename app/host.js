@@ -46,24 +46,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-function shuffle(arr) {
-    var t, j;
-    for (var i = arr.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        t = arr[i];
-        arr[i] = arr[j];
-        arr[j] = t;
-    }
-}
 var Client = /** @class */ (function () {
-    function Client(conn, _name, _score) {
+    function Client(conn, _name, _score, _hue) {
         if (_name === void 0) { _name = ""; }
         if (_score === void 0) { _score = 0; }
+        if (_hue === void 0) { _hue = Math.floor(Math.random() * 361); }
         var _this = this;
         this.conn = conn;
         this._name = _name;
         this._score = _score;
+        this._hue = _hue;
         this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>");
+        this.hue = _hue;
         this.elem.appendTo("#pList");
         conn.on("data", function (data) {
             if (data.type === "setName") {
@@ -94,8 +88,34 @@ var Client = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Client.prototype, "hue", {
+        get: function () {
+            return this._hue;
+        },
+        set: function (h) {
+            if (h > 360)
+                h = 360;
+            this._hue = h;
+            this.elem.css("background-color", "hsl(" + h + ", 100%, 50%)");
+            //Set text color based on luminance of background
+            var rgb = this.elem.css("background-color").replace(/[^,\d]/g, "").split(",");
+            var lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+            this.elem.css("color", (lum > 125) ? "black" : "white");
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Client;
 }());
+function shuffle(arr) {
+    var t, j;
+    for (var i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+    }
+}
 /// <reference path="../common.ts" />
 var State = /** @class */ (function () {
     function State() {
