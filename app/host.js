@@ -54,7 +54,7 @@ var Client = /** @class */ (function () {
         this.conn = conn;
         this._name = _name;
         this._score = _score;
-        this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>").css("padding", "0px 10px");
+        this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>");
         this.elem.appendTo("#pList");
         conn.on("data", function (data) {
             if (data.type === "setName") {
@@ -95,7 +95,7 @@ var State = /** @class */ (function () {
         console.log("No data handler specified", data);
     };
     State.prototype.enter = function () { return this; };
-    State.prototype.changeState = function (s) { state = s; };
+    State.prototype.changeState = function (s) { state = s.enter(); };
     return State;
 }());
 var InitState = /** @class */ (function (_super) {
@@ -109,25 +109,54 @@ var InitState = /** @class */ (function (_super) {
     };
     InitState.prototype.changeState = function (s) {
         $("#menu").hide();
-        state = s.enter();
+        _super.prototype.changeState.call(this, s);
     };
     InitState.prototype.processData = function (data, player) {
         if (data.type === "startGame") {
-            this.changeState(new PreQuesState());
+            this.changeState(new LoadQues());
         }
     };
     return InitState;
 }(State));
-var PreQuesState = /** @class */ (function (_super) {
-    __extends(PreQuesState, _super);
-    function PreQuesState() {
+var LoadQues = /** @class */ (function (_super) {
+    __extends(LoadQues, _super);
+    function LoadQues() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    PreQuesState.prototype.enter = function () {
-        $("#PreQuesState").show();
+    LoadQues.prototype.enter = function () {
+        var _this = this;
+        getNextQuestion().then(function (obj) {
+            _this.changeState(new QuestionState(obj));
+        });
         return this;
     };
-    return PreQuesState;
+    return LoadQues;
+}(State));
+var QuestionState = /** @class */ (function (_super) {
+    __extends(QuestionState, _super);
+    function QuestionState(ques) {
+        var _this = _super.call(this) || this;
+        _this.ques = ques;
+        _this.allowBuzz = false;
+        _this.answers = ques.incorrect_answers.slice();
+        _this.answers.push(ques.correct_answers);
+        console.log(ques);
+        return _this;
+    }
+    QuestionState.prototype.enter = function () {
+        var _this = this;
+        $("#difficulty").html(this.ques.difficulty);
+        $("#category").html(this.ques.category);
+        $("#questionInfo").show();
+        setTimeout(function () {
+            $("ques").html(_this.ques.question);
+            $("#questionInfo").hide();
+            $("#questionScreen").show();
+            _this.allowBuzz = true;
+        }, 5000);
+        return this;
+    };
+    return QuestionState;
 }(State));
 /// <reference path="../common.ts" />
 /// <reference path="client.ts" />

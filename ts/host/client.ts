@@ -2,7 +2,7 @@ class Client {
 	public elem;
 
 	constructor(public conn, private _name: string = "", private _score: number = 0) {
-		this.elem = $(`<div id="pID_${conn.id}"><p class="name">${_name}</p><p class="score">${_score}</p></div>`).css("padding", "0px 10px");
+		this.elem = $(`<div id="pID_${conn.id}"><p class="name">${_name}</p><p class="score">${_score}</p></div>`);
 		this.elem.appendTo("#pList");
 
 		conn.on("data", (data) => {

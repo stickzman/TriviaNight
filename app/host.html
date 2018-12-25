@@ -12,14 +12,27 @@
             align-items: flex-end;
             flex-wrap: wrap-reverse;
         }
+
+        #pList div {
+            padding: 0px 10px;
+        }
     </style>
 </head>
 <body>
     <div id="menu" class="state">
         <div id="roomCode">Room Code: </div>
     </div>
-    <div id="PreQuesState" class="state">
-        <p>Loading Ques...</p>
+    <div id="questionInfo" class="state">
+        <div>Difficulty: </div>
+        <div id="difficulty"></div>
+        <div>Category: </div>
+        <div id="category"></div>
+    </div>
+    <div id="questionScreen" class="state">
+        <div id="ques"></div>
+        <div id="answers">
+            <ul></ul>
+        </div>
     </div>
     <div id="pList"></div>
     <script type="text/javascript" src="lib/peer.min.js"></script>
