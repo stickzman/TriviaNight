@@ -71,6 +71,7 @@ var Client = /** @class */ (function () {
             return this._name;
         },
         set: function (n) {
+            n = n.toUpperCase();
             this._name = n;
             this.elem.find(".name").html(n);
         },
@@ -142,51 +143,62 @@ var InitState = /** @class */ (function (_super) {
     };
     InitState.prototype.processData = function (data, player) {
         if (data.type === "startGame") {
-            this.changeState(new LoadQues());
+            this.changeState(new PreQues());
         }
     };
     return InitState;
 }(State));
-var LoadQues = /** @class */ (function (_super) {
-    __extends(LoadQues, _super);
-    function LoadQues() {
+var PreQues = /** @class */ (function (_super) {
+    __extends(PreQues, _super);
+    function PreQues() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    LoadQues.prototype.enter = function () {
+    PreQues.prototype.enter = function () {
         var _this = this;
-        getNextQuestion().then(function (obj) {
-            _this.changeState(new QuestionState(obj));
+        getNextQuestion().then(function (ques) {
+            switch (ques.difficulty.toLowerCase()) {
+                case "easy":
+                    $("#difficulty").css("color", "green").html("Easy");
+                    break;
+                case "medium":
+                    $("#difficulty").css("color", "yellow").html("Medium");
+                    break;
+                case "hard":
+                    $("#difficulty").css("color", "red").html("Hard");
+                    break;
+            }
+            $("#category").html(ques.category);
+            $("#questionInfo").show();
+            setTimeout(function () {
+                $("#questionInfo").hide();
+                _this.changeState(new QuesState(ques));
+            }, 5000);
         });
         return this;
     };
-    return LoadQues;
+    return PreQues;
 }(State));
-var QuestionState = /** @class */ (function (_super) {
-    __extends(QuestionState, _super);
-    function QuestionState(ques) {
+var QuesState = /** @class */ (function (_super) {
+    __extends(QuesState, _super);
+    function QuesState(ques) {
         var _this = _super.call(this) || this;
         _this.ques = ques;
-        _this.allowBuzz = false;
-        _this.answers = ques.incorrect_answers.slice();
-        _this.answers.push(ques.correct_answers);
-        shuffle(_this.answers);
-        console.log(ques);
+        _this.correctAnswer = ques.correct_answer;
         return _this;
     }
-    QuestionState.prototype.enter = function () {
-        var _this = this;
-        $("#difficulty").html(this.ques.difficulty);
-        $("#category").html(this.ques.category);
-        $("#questionInfo").show();
-        setTimeout(function () {
-            $("ques").html(_this.ques.question);
-            $("#questionInfo").hide();
-            $("#questionScreen").show();
-            _this.allowBuzz = true;
-        }, 5000);
+    QuesState.prototype.enter = function () {
+        var answers = this.ques.incorrect_answers.slice();
+        answers.push(this.ques.correct_answer);
+        shuffle(answers);
+        $("#ques").html(this.ques.question);
+        var elem = $("#answers > ul").html("");
+        answers.forEach(function (e) {
+            elem.append("<li>" + e + "</li>");
+        });
+        $("#questionScreen").show();
         return this;
     };
-    return QuestionState;
+    return QuesState;
 }(State));
 /// <reference path="../common.ts" />
 /// <reference path="client.ts" />
@@ -196,6 +208,7 @@ var port = window.location.port;
 var path = "/api";
 var peer, state = new InitState().enter();
 var clients = [];
+//API Set up --------------------------
 var sessionToken = localStorage.getItem("sessionToken");
 if (sessionToken === null) {
     getNewToken();
@@ -266,6 +279,7 @@ function getNextQuestion() {
         });
     });
 }
+//--------------------------------------
 function init() {
     var id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
     peer = new Peer(id, { host: host, port: port, path: path });
@@ -292,6 +306,7 @@ function onConnect(conn) {
         clients = clients.filter(function (c) { return c !== client; });
     });
 }
+//Send data to all clients
 function send(data) {
     clients.forEach(function (client) { client.conn.send(data); });
 }

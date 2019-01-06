@@ -20,6 +20,10 @@ function connect() {
             type: "setName",
             name: $("#nickname").val()
         });
+
+        $("#startGame").on("click", () => {
+            conn.send({ "type": "startGame"});
+        });
     });
 
     conn.on("data", (data) => {

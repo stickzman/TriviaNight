@@ -20,6 +20,7 @@ class Client {
 	}
 
 	set name(n: string) {
+		n = n.toUpperCase();
 		this._name = n;
 		this.elem.find(".name").html(n);
 	}

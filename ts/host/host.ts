@@ -9,6 +9,7 @@ let peer, state: State = new InitState().enter();
 
 let clients: Client[] = [];
 
+//API Set up --------------------------
 let sessionToken: string = localStorage.getItem("sessionToken");
 if (sessionToken === null) {
     getNewToken();
@@ -26,7 +27,6 @@ async function resetToken() {
     console.log("All questions seen, resetting session token...");
 }
 
-
 async function getNextQuestion() {
     let res = await jQuery.getJSON("https://opentdb.com/api.php?amount=1&type=multiple&token=" + sessionToken);
     switch (res.response_code) {
@@ -38,6 +38,7 @@ async function getNextQuestion() {
     }
     return res.results[0];
 }
+//--------------------------------------
 
 function init() {
     let id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
@@ -71,6 +72,7 @@ function onConnect(conn) {
     });
 }
 
+//Send data to all clients
 function send(data) {
     clients.forEach((client) => { client.conn.send(data); });
 }

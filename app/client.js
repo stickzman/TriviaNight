@@ -1,3 +1,12 @@
+function shuffle(arr) {
+    var t, j;
+    for (var i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+    }
+}
 /// <reference path="../common.ts" />
 var host = window.location.hostname;
 var port = window.location.port;
@@ -15,6 +24,9 @@ function connect() {
         conn.send({
             type: "setName",
             name: $("#nickname").val()
+        });
+        $("#startGame").on("click", function () {
+            conn.send({ "type": "startGame" });
         });
     });
     conn.on("data", function (data) {

@@ -20,45 +20,53 @@ class InitState extends State {
 
 	public processData(data, player: Client) {
 		if (data.type === "startGame") {
-			this.changeState(new LoadQues());
+			this.changeState(new PreQues());
 		}
 	}
 }
 
-class LoadQues extends State {
+class PreQues extends State {
 	public enter(): State {
-		getNextQuestion().then((obj) => {
-			this.changeState(new QuestionState(obj));
+		getNextQuestion().then((ques) => {
+			switch(ques.difficulty.toLowerCase()) {
+				case "easy": $("#difficulty").css("color", "green").html("Easy"); break;
+				case "medium": $("#difficulty").css("color", "yellow").html("Medium"); break;
+				case "hard": $("#difficulty").css("color", "red").html("Hard"); break;
+			}
+			$("#category").html(ques.category);
+			$("#questionInfo").show();
+
+			setTimeout(() => {
+				$("#questionInfo").hide();
+				this.changeState(new QuesState(ques));
+			}, 5000);
 		});
 
 		return this;
 	}
 }
 
-class QuestionState extends State {
-	private allowBuzz: boolean = false;
-	private answers: string[];
+class QuesState extends State {
+	private correctAnswer: string;
 
 	constructor(private ques) {
 		super();
-		this.answers = ques.incorrect_answers.slice();
-		this.answers.push(ques.correct_answers);
-		shuffle(this.answers);
-		console.log(ques);
+		this.correctAnswer = ques.correct_answer;
 	}
 
 	public enter() {
-		$("#difficulty").html(this.ques.difficulty);
-		$("#category").html(this.ques.category);
-		$("#questionInfo").show();
+		let answers = this.ques.incorrect_answers.slice();
+		answers.push(this.ques.correct_answer);
+		shuffle(answers);
 
-		setTimeout(() => {
-			$("ques").html(this.ques.question);
-			$("#questionInfo").hide();
-			$("#questionScreen").show();
-			this.allowBuzz = true;
-		}, 5000);
+		$("#ques").html(this.ques.question);
+		let elem = $("#answers > ul").html("");
+		answers.forEach(e => {
+			elem.append(`<li>${e}</li>`);
+		});
+		$("#questionScreen").show();
 
 		return this;
 	}
+
 }
