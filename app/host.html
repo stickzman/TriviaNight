@@ -9,6 +9,15 @@
 
         .state {
             display: none;
+            text-align: center;
+        }
+
+        .header {
+            font-size: 80pt;
+        }
+
+        .sub-header {
+            font-size: 30pt;
         }
 
         div.pList.container {
@@ -16,15 +25,15 @@
             bottom: 0px;
             width: 99%;
             overflow-x: auto;
+            z-index: -1;
         }
-
         #pList {
             display: flex;
             align-items: flex-end;
             justify-content: center;
             min-width: max-content;
+            font-weight: bold;
         }
-
         #pList div {
             min-width: 50px;
             text-align: center;
@@ -35,30 +44,70 @@
             border-top-left-radius: 30px;
             border-top-right-radius: 30px;
         }
-
         #pList p {
             margin: 5px 0px;
         }
-
         #pList p.name {
             white-space: nowrap;
             overflow-x: hidden;
+        }
+
+        #menu {
+            padding-top: 10%;
+        }
+        #menu > .sub-header {
+            padding-top: 60px;
+        }
+        #logo {
+            font-size: 85pt;
+            font-weight: bold;
+        }
+        #roomCode {
+            font-size: 85pt;
+        }
+
+        #questionInfo {
+            padding-top: 9%;
+        }
+        #questionInfo > div.category {
+            margin-top: 50px;
+        }
+
+        #questionScreen {
+            padding-top: 10%;
+        }
+        #ques {
+            max-width: 1000px;
+            margin: auto;
+        }
+        #answers {
+            text-align: left;
+        }
+        #answers > ul {
+            width: max-content;
+            max-width: 85%;
+            margin-left: auto;
+            margin-right: auto;
+            list-style-type: lower-alpha;
+            list-style-position: inside;
+            padding-left: 0px;
         }
     </style>
 </head>
 <body>
     <div id="menu" class="state">
-        <div id="roomCode">Room Code: </div>
+        <div id="logo" class="header">Trivia Night</div>
+        <div class="sub-header">Room Code:</div><div id="roomCode"></div>
     </div>
     <div id="questionInfo" class="state">
-        <div>Difficulty: </div>
-        <div id="difficulty"></div>
-        <div>Category: </div>
-        <div id="category"></div>
+        <div class="sub-header">Difficulty: </div>
+        <div id="difficulty" class="header"></div>
+        <div class="sub-header category">Category: </div>
+        <div id="category" class="header"></div>
     </div>
     <div id="questionScreen" class="state">
-        <div id="ques"></div>
-        <div id="answers">
+        <div id="ques" class="sub-header"></div>
+        <div id="answers" class="sub-header">
             <ul></ul>
         </div>
     </div>

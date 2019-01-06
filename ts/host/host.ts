@@ -53,7 +53,8 @@ function init() {
         if (err.type === "unavailable-id"){
             init(); //Generate a new random ID and try again
         } else {
-            $("#roomCode").html(err); //Display error
+            //Display error
+            $("#roomCode").css("font-size", "35pt").css("color", "red").html(err);
             throw err;
         }
     });
