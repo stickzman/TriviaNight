@@ -40,6 +40,17 @@ async function getNextQuestion() {
 }
 //--------------------------------------
 
+function onConnect(conn) {
+    let client: Client = new Client(conn);
+    clients.push(client);
+
+    conn.on("data", (data) => { state.processData(data, client); });
+
+    conn.on("close", () => {
+        clients = clients.filter(c => c !== client);
+    });
+}
+
 function init() {
     let id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
     peer = new Peer(id, {host: host, port: port, path: path});
@@ -58,17 +69,6 @@ function init() {
             $("#roomCode").css("font-size", "35pt").css("color", "red").html(err);
             throw err;
         }
-    });
-}
-
-function onConnect(conn) {
-    let client: Client = new Client(conn);
-    clients.push(client);
-
-    conn.on("data", (data) => { state.processData(data, client); });
-
-    conn.on("close", () => {
-        clients = clients.filter(c => c !== client);
     });
 }
 

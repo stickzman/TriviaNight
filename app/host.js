@@ -46,6 +46,156 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+function shuffle(arr) {
+    var t, j;
+    for (var i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+    }
+}
+/// <reference path="../common.ts" />
+var State = /** @class */ (function () {
+    function State() {
+    }
+    State.prototype.processData = function (data, player) { };
+    State.prototype.enter = function () { return this; };
+    State.prototype.changeState = function (s) { state = s.enter(); };
+    return State;
+}());
+var InitState = /** @class */ (function (_super) {
+    __extends(InitState, _super);
+    function InitState() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    InitState.prototype.processData = function (data, player) {
+        if (data.type === "startGame") {
+            this.changeState(new PreQues());
+        }
+    };
+    InitState.prototype.enter = function () {
+        $("#menu").show();
+        return this;
+    };
+    InitState.prototype.changeState = function (s) {
+        $("#menu").hide();
+        _super.prototype.changeState.call(this, s);
+    };
+    return InitState;
+}(State));
+var PreQues = /** @class */ (function (_super) {
+    __extends(PreQues, _super);
+    function PreQues() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    PreQues.prototype.enter = function () {
+        var _this = this;
+        send({ "type": "enableBuzz" });
+        getNextQuestion().then(function (ques) {
+            switch (ques.difficulty.toLowerCase()) {
+                case "easy":
+                    $("#difficulty").css("color", "green").html("Easy");
+                    break;
+                case "medium":
+                    $("#difficulty").css("color", "yellow").html("Medium");
+                    break;
+                case "hard":
+                    $("#difficulty").css("color", "red").html("Hard");
+                    break;
+            }
+            $("#category").html(ques.category);
+            $("#questionInfo").show();
+            setTimeout(function () {
+                _this.changeState(new QuesState(ques));
+            }, 5000);
+        });
+        return this;
+    };
+    PreQues.prototype.changeState = function (s) {
+        $("#questionInfo").hide();
+        _super.prototype.changeState.call(this, s);
+    };
+    return PreQues;
+}(State));
+var QuesState = /** @class */ (function (_super) {
+    __extends(QuesState, _super);
+    function QuesState(ques) {
+        var _this = _super.call(this) || this;
+        _this.ques = ques;
+        _this.allowBuzz = true;
+        _this.penalizeBuzz = false;
+        _this.correctAnswer = ques.correct_answer;
+        return _this;
+    }
+    QuesState.prototype.processData = function (data, player) {
+        var _this = this;
+        if (data.type === "buzz") {
+            if (this.allowBuzz) {
+                this.allowBuzz = false;
+                this.currPlayer = player;
+                player.conn.send({ "type": "buzz" });
+                player.conn.send({
+                    "type": "ques",
+                    "message": {
+                        "ques": this.ques.question,
+                        "answers": this.answers
+                    }
+                });
+                this.buzzTimeout = setTimeout(function () { _this.penalizeBuzz = true; }, 3000);
+            }
+            else if (this.penalizeBuzz) {
+                player.score -= 10;
+            }
+        }
+        else if (data.type === "answer") {
+            if (player === this.currPlayer) {
+                if (data.message === this.correctAnswer) {
+                    player.score += 10;
+                    this.changeState(new PreQues());
+                }
+                else {
+                    this.currPlayer = null;
+                    player.score -= 10;
+                    clearTimeout(this.buzzTimeout);
+                    this.penalizeBuzz = false;
+                    this.allowBuzz = true;
+                }
+            }
+        }
+    };
+    QuesState.prototype.enter = function () {
+        this.answers = this.ques.incorrect_answers.slice();
+        this.answers.push(this.ques.correct_answer);
+        shuffle(this.answers);
+        $("#ques").html(this.ques.question);
+        var elem = $("#answers > ul").html("");
+        this.answers.forEach(function (e) {
+            elem.append("<li>" + e + "</li>");
+        });
+        $("#questionScreen").show();
+        return this;
+    };
+    QuesState.prototype.changeState = function (s) {
+        $("#questionScreen").hide();
+        _super.prototype.changeState.call(this, s);
+    };
+    return QuesState;
+}(State));
+var WinState = /** @class */ (function (_super) {
+    __extends(WinState, _super);
+    function WinState(winner) {
+        var _this = _super.call(this) || this;
+        _this.winner = winner;
+        return _this;
+    }
+    WinState.prototype.enter = function () {
+        $("#winDiv").html(this.winner.name);
+        $("#winScreen").show();
+        return this;
+    };
+    return WinState;
+}(State));
 var Client = /** @class */ (function () {
     function Client(conn, _name, _score, _hue) {
         if (_name === void 0) { _name = ""; }
@@ -108,98 +258,6 @@ var Client = /** @class */ (function () {
     });
     return Client;
 }());
-function shuffle(arr) {
-    var t, j;
-    for (var i = arr.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        t = arr[i];
-        arr[i] = arr[j];
-        arr[j] = t;
-    }
-}
-/// <reference path="../common.ts" />
-var State = /** @class */ (function () {
-    function State() {
-    }
-    State.prototype.processData = function (data, player) {
-        console.log("No data handler specified", data);
-    };
-    State.prototype.enter = function () { return this; };
-    State.prototype.changeState = function (s) { state = s.enter(); };
-    return State;
-}());
-var InitState = /** @class */ (function (_super) {
-    __extends(InitState, _super);
-    function InitState() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    InitState.prototype.enter = function () {
-        $("#menu").show();
-        return this;
-    };
-    InitState.prototype.changeState = function (s) {
-        $("#menu").hide();
-        _super.prototype.changeState.call(this, s);
-    };
-    InitState.prototype.processData = function (data, player) {
-        if (data.type === "startGame") {
-            this.changeState(new PreQues());
-        }
-    };
-    return InitState;
-}(State));
-var PreQues = /** @class */ (function (_super) {
-    __extends(PreQues, _super);
-    function PreQues() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    PreQues.prototype.enter = function () {
-        var _this = this;
-        getNextQuestion().then(function (ques) {
-            switch (ques.difficulty.toLowerCase()) {
-                case "easy":
-                    $("#difficulty").css("color", "green").html("Easy");
-                    break;
-                case "medium":
-                    $("#difficulty").css("color", "yellow").html("Medium");
-                    break;
-                case "hard":
-                    $("#difficulty").css("color", "red").html("Hard");
-                    break;
-            }
-            $("#category").html(ques.category);
-            $("#questionInfo").show();
-            setTimeout(function () {
-                $("#questionInfo").hide();
-                _this.changeState(new QuesState(ques));
-            }, 5000);
-        });
-        return this;
-    };
-    return PreQues;
-}(State));
-var QuesState = /** @class */ (function (_super) {
-    __extends(QuesState, _super);
-    function QuesState(ques) {
-        var _this = _super.call(this) || this;
-        _this.ques = ques;
-        _this.correctAnswer = ques.correct_answer;
-        return _this;
-    }
-    QuesState.prototype.enter = function () {
-        var answers = this.ques.incorrect_answers.slice();
-        answers.push(this.ques.correct_answer);
-        shuffle(answers);
-        $("#ques").html(this.ques.question);
-        var elem = $("#answers > ul").html("");
-        answers.forEach(function (e) {
-            elem.append("<li>" + e + "</li>");
-        });
-        $("#questionScreen").show();
-        return this;
-    };
-    return QuesState;
-}(State));
 /// <reference path="../common.ts" />
 /// <reference path="client.ts" />
 /// <reference path="state.ts" />
@@ -280,6 +338,14 @@ function getNextQuestion() {
     });
 }
 //--------------------------------------
+function onConnect(conn) {
+    var client = new Client(conn);
+    clients.push(client);
+    conn.on("data", function (data) { state.processData(data, client); });
+    conn.on("close", function () {
+        clients = clients.filter(function (c) { return c !== client; });
+    });
+}
 function init() {
     var id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
     peer = new Peer(id, { host: host, port: port, path: path });
@@ -296,14 +362,6 @@ function init() {
             $("#roomCode").css("font-size", "35pt").css("color", "red").html(err);
             throw err;
         }
-    });
-}
-function onConnect(conn) {
-    var client = new Client(conn);
-    clients.push(client);
-    conn.on("data", function (data) { state.processData(data, client); });
-    conn.on("close", function () {
-        clients = clients.filter(function (c) { return c !== client; });
     });
 }
 //Send data to all clients
