@@ -12,3 +12,21 @@ function shuffle(arr: any[]) {
 		arr[j] = t;
 	}
 }
+
+function setMouseDown(selector: string, callbackFunc: Function) {
+	if (window.onpointerdown === undefined) {
+		$(selector).on("mousedown", callbackFunc);
+		$(selector).on("touchdown", callbackFunc);
+	} else {
+		$(selector).on("pointerdown", callbackFunc);
+	}
+}
+
+function setMouseUp(selector: string, callbackFunc: Function) {
+	if (window.onpointerup === undefined) {
+		$(selector).on("mouseup", callbackFunc);
+		$(selector).on("touchup", callbackFunc);
+	} else {
+		$(selector).on("pointerup", callbackFunc);
+	}
+}
