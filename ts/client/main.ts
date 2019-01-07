@@ -3,7 +3,8 @@ let host: string = window.location.hostname;
 let port: string = window.location.port;
 let path: string = "/api";
 
-let peer, conn;
+let peer, conn, currScreen = $("#connectScreen");
+let nickname: string, hue: number;
 
 function connect() {
     if ($("#roomCode").val().length == 0) {
@@ -11,23 +12,62 @@ function connect() {
         return;
     }
 
+    nickname = $("#nickname").val();
+
     conn = peer.connect($("#roomCode").val());
-    $("#networkDiv input").attr("disabled", "disabled");
+    $("#connectScreen input").attr("disabled", "disabled");
 
-    conn.on("open", () => {
-        $("#networkDiv").hide();
+    //Set up click listeners for conn obj
+    $("#startGame").on("click", () => {
+        conn.send({ "type": "startGame"});
+    });
+    setMouseDown("#buzzerScreen", () => {
+        conn.send({"type": "buzz"});
+    });
+    $(".answerBtn").on("click", function() {
         conn.send({
-            type: "setName",
-            name: $("#nickname").val()
-        });
-
-        $("#startGame").on("click", () => {
-            conn.send({ "type": "startGame"});
+            "type": "answer",
+            "message": $(this).html()
         });
     });
 
+
+    conn.on("open", () => {
+        currScreen.hide();
+        currScreen = $("#begin").css("display", "flex");
+
+        conn.send({
+            "type": "setName",
+            "name": $("#nickname").val()
+        });
+    });
+
+    conn.on("close", () => {
+        currScreen.hide();
+        $("#banner").hide();
+        $("#connectScreen input").removeAttr("disabled");
+        currScreen = $("connectScreen").css("display", "flex");
+    });
+
     conn.on("data", (data) => {
-        console.log(data);
+        switch (data.type) {
+            case "enableBuzz":
+                currScreen.hide();
+                currScreen = $("#buzzerScreen").css("display", "flex");
+                break;
+            case "buzz": navigator.vibrate(300); break;
+            case "ques":
+                currScreen.hide();
+                //Load quesion into div
+                $("#question").html(data.message.ques);
+                let answers = data.message.answers;
+                let elems = $(".answerBtn");
+                for (let i = 0; i < answers.length; i++) {
+                    elems.next().html(answers[i]);
+                }
+                currScreen = $("#questionScreen").css("display", "flex");
+                break;
+        }
     });
 }
 
@@ -38,7 +78,7 @@ function init() {
     peer.on("error", (err) => {
         if (err.type === "invalid-id" || err.type === "peer-unavailable") {
             console.log("Invalid Room Code")
-            $("#networkDiv input").removeAttr("disabled");
+            $("#connectScreen input").removeAttr("disabled");
         } else {
             throw err;
         }
@@ -49,7 +89,7 @@ function init() {
     });
 
     $("#connBtn").on("click", connect);
-    $("#networkDiv").on("keypress", (e) => {
+    $("#connectScreen").on("keypress", (e) => {
         (e.key === "Enter") ? $("#connBtn").click() : null;
     });
 }

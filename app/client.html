@@ -48,8 +48,6 @@
             width: 100%;
             min-height: 10vh;
             font-size: 7vh;
-
-            background-color: yellow;
         }
 
         #connectScreen {
@@ -67,6 +65,9 @@
             display: flex;
             flex-direction: column;
         }
+        #nickname {
+            text-transform: uppercase;
+        }
 
         #begin {
             min-height: 80vh;
@@ -78,7 +79,7 @@
             width: 80%;
         }
 
-        #buzzerState {
+        #buzzerScreen {
             justify-content: center;
             align-items: center;
             min-height: 90vh;
@@ -164,7 +165,7 @@
     <div id="begin" class="state">
         <input type="button" id="startGame" class="submitBtn" value="Start Game">
     </div>
-    <div id="buzzerState" class="state">
+    <div id="buzzerScreen" class="state">
         <div><div class="buzzer"></div></div>
     </div>
     <div id="questionScreen" class="state">
@@ -184,21 +185,21 @@
         //Handle buzzer press animation
         (function() {
             function mouseDown() {
-                $("#buzzerState .buzzer").addClass("pressed");
+                $("#buzzerScreen .buzzer").addClass("pressed");
             }
 
             function mouseUp() {
-                $("#buzzerState .buzzer").removeClass("pressed");
+                $("#buzzerScreen .buzzer").removeClass("pressed");
             }
 
             if (window.onpointerdown === undefined) {
-                $("#buzzerState").on("mousedown", mouseDown);
-                $("#buzzerState").on("touchdown", mouseDown);
-                $("#buzzerState").on("mouseup", mouseUp);
-                $("#buzzerState").on("touchup", mouseUp);
+                $("#buzzerScreen").on("mousedown", mouseDown);
+                $("#buzzerScreen").on("touchdown", mouseDown);
+                $("#buzzerScreen").on("mouseup", mouseUp);
+                $("#buzzerScreen").on("touchup", mouseUp);
             } else {
-                $("#buzzerState").on("pointerdown", mouseDown);
-                $("#buzzerState").on("pointerup", mouseUp);
+                $("#buzzerScreen").on("pointerdown", mouseDown);
+                $("#buzzerScreen").on("pointerup", mouseUp);
             }
         }());
     </script>

@@ -7,30 +7,86 @@ function shuffle(arr) {
         arr[j] = t;
     }
 }
+function setMouseDown(selector, callbackFunc) {
+    if (window.onpointerdown === undefined) {
+        $(selector).on("mousedown", callbackFunc);
+        $(selector).on("touchdown", callbackFunc);
+    }
+    else {
+        $(selector).on("pointerdown", callbackFunc);
+    }
+}
+function setMouseUp(selector, callbackFunc) {
+    if (window.onpointerup === undefined) {
+        $(selector).on("mouseup", callbackFunc);
+        $(selector).on("touchup", callbackFunc);
+    }
+    else {
+        $(selector).on("pointerup", callbackFunc);
+    }
+}
 /// <reference path="../common.ts" />
 var host = window.location.hostname;
 var port = window.location.port;
 var path = "/api";
-var peer, conn;
+var peer, conn, currScreen = $("#connectScreen");
+var nickname, hue;
 function connect() {
     if ($("#roomCode").val().length == 0) {
         console.log("Please enter a Room Code");
         return;
     }
+    nickname = $("#nickname").val();
     conn = peer.connect($("#roomCode").val());
-    $("#networkDiv input").attr("disabled", "disabled");
-    conn.on("open", function () {
-        $("#networkDiv").hide();
+    $("#connectScreen input").attr("disabled", "disabled");
+    //Set up click listeners for conn obj
+    $("#startGame").on("click", function () {
+        conn.send({ "type": "startGame" });
+    });
+    setMouseDown("#buzzerScreen", function () {
+        conn.send({ "type": "buzz" });
+    });
+    $(".answerBtn").on("click", function () {
         conn.send({
-            type: "setName",
-            name: $("#nickname").val()
-        });
-        $("#startGame").on("click", function () {
-            conn.send({ "type": "startGame" });
+            "type": "answer",
+            "message": $(this).html()
         });
     });
+    conn.on("open", function () {
+        currScreen.hide();
+        currScreen = $("#begin").css("display", "flex");
+        conn.send({
+            "type": "setName",
+            "name": $("#nickname").val()
+        });
+    });
+    conn.on("close", function () {
+        currScreen.hide();
+        $("#banner").hide();
+        $("#connectScreen input").removeAttr("disabled");
+        currScreen = $("connectScreen").css("display", "flex");
+    });
     conn.on("data", function (data) {
-        console.log(data);
+        switch (data.type) {
+            case "enableBuzz":
+                currScreen.hide();
+                currScreen = $("#buzzerScreen").css("display", "flex");
+                break;
+            case "buzz":
+                navigator.vibrate(300);
+                break;
+            case "ques":
+                currScreen.hide();
+                //Load quesion into div
+                $("#question").html(data.message.ques);
+                var answers = data.message.answers;
+                var elems = $(".answerBtn");
+                for (var i = 0; i < answers.length; i++) {
+                    elems.next().html(answers[i]);
+                }
+                currScreen = $("#questionScreen").css("display", "flex");
+                break;
+        }
     });
 }
 function init() {
@@ -38,7 +94,7 @@ function init() {
     peer.on("error", function (err) {
         if (err.type === "invalid-id" || err.type === "peer-unavailable") {
             console.log("Invalid Room Code");
-            $("#networkDiv input").removeAttr("disabled");
+            $("#connectScreen input").removeAttr("disabled");
         }
         else {
             throw err;
@@ -48,7 +104,7 @@ function init() {
         console.log('My peer ID is: ' + id);
     });
     $("#connBtn").on("click", connect);
-    $("#networkDiv").on("keypress", function (e) {
+    $("#connectScreen").on("keypress", function (e) {
         (e.key === "Enter") ? $("#connBtn").click() : null;
     });
 }
