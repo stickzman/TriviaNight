@@ -13,7 +13,7 @@ class InitState extends State {
 	}
 
 	public enter(): State {
-		$("#menu").show();
+		$("#menu").css("display", "flex");
 		return this;
 	}
 
@@ -33,7 +33,7 @@ class PreQues extends State {
 				case "hard": $("#difficulty").css("color", "red").html("Hard"); break;
 			}
 			$("#category").html(ques.category);
-			$("#questionInfo").show();
+			$("#questionInfo").css("display", "flex");
 
 			setTimeout(() => {
 				this.changeState(new QuesState(ques));
@@ -73,7 +73,7 @@ class QuesState extends State {
 			if (this.allowBuzz) {
 				this.allowBuzz = false;
 				this.currPlayer = player;
-				//$("#questionScreen").css("background-color", `hsl(${player.hue}, 100%, 80%)`);
+				$("#questionScreen").css("box-shadow", `inset 0 0 14vmin hsl(${player.hue}, 100%, 50%)`);
 				player.conn.send({"type": "buzz", "message": "300"});
 				player.conn.send({
 					"type": "ques",
@@ -97,6 +97,7 @@ class QuesState extends State {
 					}
 				} else {
 					this.currPlayer = null;
+					$("#questionScreen").css("box-shadow", "");
 					player.conn.send({"type": "buzz", "message": "1000"});
 					player.score -= this.quesVal;
 					clearTimeout(this.buzzTimeout);
@@ -124,6 +125,7 @@ class QuesState extends State {
 	}
 
 	public changeState(s: State) {
+		$("#questionScreen").css("box-shadow", "");
 		$("#questionScreen").hide();
 		super.changeState(s);
 	}
@@ -136,7 +138,7 @@ class WinState extends State {
 
 	public enter() {
 		$("#winDiv").css("color", `hsl(${this.winner.hue}, 100%, 50%)`).html(this.winner.name);
-		$("#winScreen").show();
+		$("#winScreen").css("display", "flex");
 		this.winner.conn.send({"type": "win"});
 		send({"type": "playAgain"});
 

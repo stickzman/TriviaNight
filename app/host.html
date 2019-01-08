@@ -5,19 +5,22 @@
     <style>
         body {
             font-family: sans-serif;
+            margin: 0px;
         }
 
         .state {
             display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
             text-align: center;
         }
-
         .header {
-            font-size: 65pt;
+            font-size: 12vmin;
         }
-
         .sub-header {
-            font-size: 30pt;
+            font-size: 6vmin;
         }
 
         div.pList.container {
@@ -50,13 +53,14 @@
         #pList p.name {
             white-space: nowrap;
             overflow-x: hidden;
+            margin-top: 10px;
         }
 
         #menu {
-            padding-top: 10%;
+            height: 100vh;
         }
         #menu > .sub-header {
-            padding-top: 60px;
+            padding-top: 5vh;
         }
         #logo {
             font-size: 85pt;
@@ -67,39 +71,47 @@
         }
 
         #questionInfo {
-            padding-top: 9%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 75vh;
         }
-        #questionInfo > div.category {
-            margin-top: 50px;
+        #questionInfo div.category {
+            margin-top: 5vh;
         }
         #category {
-            max-width: 1000px;
-            margin: auto;
+            max-width: 85%;
         }
 
         #questionScreen {
-            padding-top: 10%;
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            z-index: -2;
+        }
+        #questionScreen > div.state {
+            display: flex;
         }
         #ques {
             font-weight: bold;
-            max-width: 1000px;
-            margin: auto;
+            max-width: 90%;
         }
         #answers {
             text-align: left;
         }
         #answers > ul {
-            width: max-content;
-            max-width: 85%;
-            margin-left: auto;
-            margin-right: auto;
+            max-width: 85vw;
             list-style-type: lower-alpha;
             list-style-position: inside;
             padding-left: 0px;
         }
 
         #winScreen {
-            padding-top: 20%;
+            font-size: 10vmin;
+        }
+        #winDiv {
+            font-weight: bold;
+            font-size: 20vmin;
         }
     </style>
 </head>
@@ -109,20 +121,22 @@
         <div class="sub-header">Room Code:</div><div id="roomCode"></div>
     </div>
     <div id="questionInfo" class="state">
-        <div class="sub-header">Difficulty: </div>
+        <div class="sub-header">Difficulty:</div>
         <div id="difficulty" class="header"></div>
-        <div class="sub-header category">Category: </div>
+        <div class="sub-header category">Category:</div>
         <div id="category" class="header"></div>
     </div>
     <div id="questionScreen" class="state">
-        <div id="ques" class="sub-header"></div>
-        <div id="answers" class="sub-header">
-            <ul></ul>
+        <div class="state">
+            <div id="ques" class="sub-header"></div>
+            <div id="answers" class="sub-header">
+                <ul></ul>
+            </div>
         </div>
     </div>
     <div id="winScreen" class="state">
         <div id="winDiv" class="header"></div>
-        <div class="sub-header">Wins!</div>
+        <div>Wins!</div>
     </div>
     <div class="pList container"><div id="pList"></div></div>
     <script type="text/javascript" src="lib/peer.min.js"></script>

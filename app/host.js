@@ -55,8 +55,8 @@ var Client = /** @class */ (function () {
         this._name = _name;
         this._score = _score;
         this._hue = _hue;
-        this.MAX_HEIGHT = 225; //in pixels
-        this.MIN_HEIGHT = 52; //in pixels
+        this.MAX_HEIGHT = 25; //in vh
+        this.MIN_HEIGHT = 8; //in vh
         this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>");
         if (_hue !== undefined)
             this.hue = _hue;
@@ -97,7 +97,7 @@ var Client = /** @class */ (function () {
             if (p > 1)
                 p = 1;
             var h = this.MIN_HEIGHT + p * (this.MAX_HEIGHT - this.MIN_HEIGHT);
-            this.elem.css("height", h + "px").find(".score").html(s);
+            this.elem.css("height", h + "vh").find(".score").html(s);
         },
         enumerable: true,
         configurable: true
@@ -148,6 +148,12 @@ function setMouseUp(selector, callbackFunc) {
         $(selector).on("pointerup", callbackFunc);
     }
 }
+function decodeHTML(html) {
+    var txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+}
+;
 /// <reference path="../common.ts" />
 var State = /** @class */ (function () {
     function State() {
@@ -168,7 +174,7 @@ var InitState = /** @class */ (function (_super) {
         }
     };
     InitState.prototype.enter = function () {
-        $("#menu").show();
+        $("#menu").css("display", "flex");
         return this;
     };
     InitState.prototype.changeState = function (s) {
@@ -198,7 +204,7 @@ var PreQues = /** @class */ (function (_super) {
                     break;
             }
             $("#category").html(ques.category);
-            $("#questionInfo").show();
+            $("#questionInfo").css("display", "flex");
             setTimeout(function () {
                 _this.changeState(new QuesState(ques));
             }, 2000);
@@ -238,7 +244,7 @@ var QuesState = /** @class */ (function (_super) {
             if (this.allowBuzz) {
                 this.allowBuzz = false;
                 this.currPlayer = player;
-                //$("#questionScreen").css("background-color", `hsl(${player.hue}, 100%, 80%)`);
+                $("#questionScreen").css("box-shadow", "inset 0 0 14vmin hsl(" + player.hue + ", 100%, 50%)");
                 player.conn.send({ "type": "buzz", "message": "300" });
                 player.conn.send({
                     "type": "ques",
@@ -266,6 +272,7 @@ var QuesState = /** @class */ (function (_super) {
                 }
                 else {
                     this.currPlayer = null;
+                    $("#questionScreen").css("box-shadow", "");
                     player.conn.send({ "type": "buzz", "message": "1000" });
                     player.score -= this.quesVal;
                     clearTimeout(this.buzzTimeout);
@@ -289,6 +296,7 @@ var QuesState = /** @class */ (function (_super) {
         return this;
     };
     QuesState.prototype.changeState = function (s) {
+        $("#questionScreen").css("box-shadow", "");
         $("#questionScreen").hide();
         _super.prototype.changeState.call(this, s);
     };
@@ -303,7 +311,7 @@ var WinState = /** @class */ (function (_super) {
     }
     WinState.prototype.enter = function () {
         $("#winDiv").css("color", "hsl(" + this.winner.hue + ", 100%, 50%)").html(this.winner.name);
-        $("#winScreen").show();
+        $("#winScreen").css("display", "flex");
         this.winner.conn.send({ "type": "win" });
         send({ "type": "playAgain" });
         return this;

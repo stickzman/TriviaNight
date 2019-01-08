@@ -1,7 +1,7 @@
 class Client {
 	public elem;
-	readonly MAX_HEIGHT = 225;	//in pixels
-	readonly MIN_HEIGHT = 52;	//in pixels
+	readonly MAX_HEIGHT = 25; //in vh
+	readonly MIN_HEIGHT = 8;  //in vh
 
 	constructor(public conn, public _name: string = "", public _score: number = 0, public _hue?: number) {
 		this.elem = $(`<div id="pID_${conn.id}"><p class="name">${_name}</p><p class="score">${_score}</p></div>`);
@@ -42,7 +42,7 @@ class Client {
 		let p = s/MAX_SCORE;
 		if (p > 1) p = 1;
 		let h = this.MIN_HEIGHT + p * (this.MAX_HEIGHT - this.MIN_HEIGHT);
-		this.elem.css("height", h + "px").find(".score").html(s);
+		this.elem.css("height", h + "vh").find(".score").html(s);
 	}
 
 	get hue() {

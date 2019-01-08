@@ -99,6 +99,12 @@
             align-items: center;
             justify-content: center;
             padding: 5vmin 0px;
+            /*Make text unselectable*/
+            -moz-user-select: -moz-none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         #answers {
             display: flex;
@@ -112,6 +118,12 @@
             font-size: 7vmin;
             border: 2px solid black;
             margin-bottom: 1vh;
+            /*Make text unselectable*/
+            -moz-user-select: -moz-none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         .answerBtn:active {
             background-color: white;

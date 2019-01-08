@@ -72,7 +72,7 @@ function connect() {
                 let answers = data.message.answers;
                 let elems = $(".answerBtn");
                 for (let i = 0; i < answers.length; i++) {
-                    elems[i].innerText = answers[i];
+                    elems[i].innerText = decodeHTML(answers[i]);
                 }
                 currScreen.hide();
                 currScreen = $("#questionScreen").css("display", "flex");

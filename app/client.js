@@ -25,6 +25,12 @@ function setMouseUp(selector, callbackFunc) {
         $(selector).on("pointerup", callbackFunc);
     }
 }
+function decodeHTML(html) {
+    var txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+}
+;
 /// <reference path="../common.ts" />
 var host = window.location.hostname;
 var port = window.location.port;
@@ -90,7 +96,7 @@ function connect() {
                 var answers = data.message.answers;
                 var elems = $(".answerBtn");
                 for (var i = 0; i < answers.length; i++) {
-                    elems[i].innerText = answers[i];
+                    elems[i].innerText = decodeHTML(answers[i]);
                 }
                 currScreen.hide();
                 currScreen = $("#questionScreen").css("display", "flex");
