@@ -6,6 +6,7 @@ let port: string = window.location.port;
 let path: string = "/api";
 
 let peer, state: State = new InitState().enter();
+const MAX_SCORE = 100;
 
 let clients: Client[] = [];
 

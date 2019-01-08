@@ -1,14 +1,21 @@
 class Client {
 	public elem;
+	readonly MAX_HEIGHT = 225;	//in pixels
+	readonly MIN_HEIGHT = 52;	//in pixels
 
-	constructor(public conn, private _name: string = "", private _score: number = 0, private _hue: number = Math.floor(Math.random() * 361)) {
+	constructor(public conn, public _name: string = "", public _score: number = 0, public _hue?: number) {
 		this.elem = $(`<div id="pID_${conn.id}"><p class="name">${_name}</p><p class="score">${_score}</p></div>`);
-		this.hue = _hue;
+		if (_hue !== undefined) this.hue = _hue;
 		this.elem.appendTo("#pList");
 
 		conn.on("data", (data) => {
 	        if (data.type === "setName") {
-	            this.name = data.name;
+	            this.name = data.message;
+	        }
+	    });
+		conn.on("data", (data) => {
+	        if (data.type === "setColor") {
+	            this.hue = data.message;
 	        }
 	    });
 
@@ -30,8 +37,12 @@ class Client {
 	}
 
 	set score(s: number) {
+		if (s < 0) s = 0;
 		this._score = s;
-		this.elem.find(".score").html(s);
+		let p = s/MAX_SCORE;
+		if (p > 1) p = 1;
+		let h = this.MIN_HEIGHT + p * (this.MAX_HEIGHT - this.MIN_HEIGHT);
+		this.elem.css("height", h + "px").find(".score").html(s);
 	}
 
 	get hue() {
@@ -47,4 +58,4 @@ class Client {
 		let lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
 		this.elem.css("color", (lum > 125) ? "black" : "white");
 	}
-}
+ }

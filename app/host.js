@@ -46,6 +46,81 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var Client = /** @class */ (function () {
+    function Client(conn, _name, _score, _hue) {
+        if (_name === void 0) { _name = ""; }
+        if (_score === void 0) { _score = 0; }
+        var _this = this;
+        this.conn = conn;
+        this._name = _name;
+        this._score = _score;
+        this._hue = _hue;
+        this.MAX_HEIGHT = 225; //in pixels
+        this.MIN_HEIGHT = 52; //in pixels
+        this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>");
+        if (_hue !== undefined)
+            this.hue = _hue;
+        this.elem.appendTo("#pList");
+        conn.on("data", function (data) {
+            if (data.type === "setName") {
+                _this.name = data.message;
+            }
+        });
+        conn.on("data", function (data) {
+            if (data.type === "setColor") {
+                _this.hue = data.message;
+            }
+        });
+        conn.on("close", function () { _this.elem.remove(); });
+    }
+    Object.defineProperty(Client.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        set: function (n) {
+            n = n.toUpperCase();
+            this._name = n;
+            this.elem.find(".name").html(n);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Client.prototype, "score", {
+        get: function () {
+            return this._score;
+        },
+        set: function (s) {
+            if (s < 0)
+                s = 0;
+            this._score = s;
+            var p = s / MAX_SCORE;
+            if (p > 1)
+                p = 1;
+            var h = this.MIN_HEIGHT + p * (this.MAX_HEIGHT - this.MIN_HEIGHT);
+            this.elem.css("height", h + "px").find(".score").html(s);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Client.prototype, "hue", {
+        get: function () {
+            return this._hue;
+        },
+        set: function (h) {
+            if (h > 360)
+                h = 360;
+            this._hue = h;
+            this.elem.css("background-color", "hsl(" + h + ", 100%, 50%)");
+            //Set text color based on luminance of background
+            var rgb = this.elem.css("background-color").replace(/[^,\d]/g, "").split(",");
+            var lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+            this.elem.css("color", (lum > 125) ? "black" : "white");
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return Client;
+}());
 function shuffle(arr) {
     var t, j;
     for (var i = arr.length - 1; i > 0; i--) {
@@ -53,6 +128,24 @@ function shuffle(arr) {
         t = arr[i];
         arr[i] = arr[j];
         arr[j] = t;
+    }
+}
+function setMouseDown(selector, callbackFunc) {
+    if (window.onpointerdown === undefined) {
+        $(selector).on("mousedown", callbackFunc);
+        $(selector).on("touchdown", callbackFunc);
+    }
+    else {
+        $(selector).on("pointerdown", callbackFunc);
+    }
+}
+function setMouseUp(selector, callbackFunc) {
+    if (window.onpointerup === undefined) {
+        $(selector).on("mouseup", callbackFunc);
+        $(selector).on("touchup", callbackFunc);
+    }
+    else {
+        $(selector).on("pointerup", callbackFunc);
     }
 }
 /// <reference path="../common.ts" />
@@ -108,7 +201,7 @@ var PreQues = /** @class */ (function (_super) {
             $("#questionInfo").show();
             setTimeout(function () {
                 _this.changeState(new QuesState(ques));
-            }, 5000);
+            }, 2000);
         });
         return this;
     };
@@ -126,6 +219,17 @@ var QuesState = /** @class */ (function (_super) {
         _this.allowBuzz = true;
         _this.penalizeBuzz = false;
         _this.correctAnswer = ques.correct_answer;
+        switch (ques.difficulty.substr(0, 1)) {
+            case "e":
+                _this.quesVal = 10;
+                break;
+            case "m":
+                _this.quesVal = 20;
+                break;
+            case "h":
+                _this.quesVal = 30;
+                break;
+        }
         return _this;
     }
     QuesState.prototype.processData = function (data, player) {
@@ -134,7 +238,8 @@ var QuesState = /** @class */ (function (_super) {
             if (this.allowBuzz) {
                 this.allowBuzz = false;
                 this.currPlayer = player;
-                player.conn.send({ "type": "buzz" });
+                //$("#questionScreen").css("background-color", `hsl(${player.hue}, 100%, 80%)`);
+                player.conn.send({ "type": "buzz", "message": "300" });
                 player.conn.send({
                     "type": "ques",
                     "message": {
@@ -151,15 +256,22 @@ var QuesState = /** @class */ (function (_super) {
         else if (data.type === "answer") {
             if (player === this.currPlayer) {
                 if (data.message === this.correctAnswer) {
-                    player.score += 10;
-                    this.changeState(new PreQues());
+                    player.score += this.quesVal;
+                    if (player.score >= MAX_SCORE) {
+                        this.changeState(new WinState(player));
+                    }
+                    else {
+                        this.changeState(new PreQues());
+                    }
                 }
                 else {
                     this.currPlayer = null;
-                    player.score -= 10;
+                    player.conn.send({ "type": "buzz", "message": "1000" });
+                    player.score -= this.quesVal;
                     clearTimeout(this.buzzTimeout);
                     this.penalizeBuzz = false;
                     this.allowBuzz = true;
+                    this.changeState(new PreQues());
                 }
             }
         }
@@ -190,74 +302,26 @@ var WinState = /** @class */ (function (_super) {
         return _this;
     }
     WinState.prototype.enter = function () {
-        $("#winDiv").html(this.winner.name);
+        $("#winDiv").css("color", "hsl(" + this.winner.hue + ", 100%, 50%)").html(this.winner.name);
         $("#winScreen").show();
+        this.winner.conn.send({ "type": "win" });
+        send({ "type": "playAgain" });
         return this;
+    };
+    WinState.prototype.processData = function (data, player) {
+        if (data.type === "startGame") {
+            clients.forEach(function (c) {
+                c.score = 0;
+            });
+            this.changeState(new PreQues());
+        }
+    };
+    WinState.prototype.changeState = function (s) {
+        $("#winScreen").hide();
+        _super.prototype.changeState.call(this, s);
     };
     return WinState;
 }(State));
-var Client = /** @class */ (function () {
-    function Client(conn, _name, _score, _hue) {
-        if (_name === void 0) { _name = ""; }
-        if (_score === void 0) { _score = 0; }
-        if (_hue === void 0) { _hue = Math.floor(Math.random() * 361); }
-        var _this = this;
-        this.conn = conn;
-        this._name = _name;
-        this._score = _score;
-        this._hue = _hue;
-        this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>");
-        this.hue = _hue;
-        this.elem.appendTo("#pList");
-        conn.on("data", function (data) {
-            if (data.type === "setName") {
-                _this.name = data.name;
-            }
-        });
-        conn.on("close", function () { _this.elem.remove(); });
-    }
-    Object.defineProperty(Client.prototype, "name", {
-        get: function () {
-            return this._name;
-        },
-        set: function (n) {
-            n = n.toUpperCase();
-            this._name = n;
-            this.elem.find(".name").html(n);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Client.prototype, "score", {
-        get: function () {
-            return this._score;
-        },
-        set: function (s) {
-            this._score = s;
-            this.elem.find(".score").html(s);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Client.prototype, "hue", {
-        get: function () {
-            return this._hue;
-        },
-        set: function (h) {
-            if (h > 360)
-                h = 360;
-            this._hue = h;
-            this.elem.css("background-color", "hsl(" + h + ", 100%, 50%)");
-            //Set text color based on luminance of background
-            var rgb = this.elem.css("background-color").replace(/[^,\d]/g, "").split(",");
-            var lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
-            this.elem.css("color", (lum > 125) ? "black" : "white");
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return Client;
-}());
 /// <reference path="../common.ts" />
 /// <reference path="client.ts" />
 /// <reference path="state.ts" />
@@ -265,6 +329,7 @@ var host = window.location.hostname;
 var port = window.location.port;
 var path = "/api";
 var peer, state = new InitState().enter();
+var MAX_SCORE = 100;
 var clients = [];
 //API Set up --------------------------
 var sessionToken = localStorage.getItem("sessionToken");

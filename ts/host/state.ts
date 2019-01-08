@@ -37,7 +37,7 @@ class PreQues extends State {
 
 			setTimeout(() => {
 				this.changeState(new QuesState(ques));
-			}, 5000);
+			}, 2000);
 		});
 
 		return this;
@@ -56,10 +56,16 @@ class QuesState extends State {
 	private answers: string[];
 	private correctAnswer: string;
 	private currPlayer: Client;
+	private quesVal: number;
 
 	constructor(private ques) {
 		super();
 		this.correctAnswer = ques.correct_answer;
+		switch (ques.difficulty.substr(0, 1)) {
+			case "e": this.quesVal = 10; break;
+			case "m": this.quesVal = 20; break;
+			case "h": this.quesVal = 30; break;
+		}
 	}
 
 	public processData(data, player: Client) {
@@ -67,7 +73,8 @@ class QuesState extends State {
 			if (this.allowBuzz) {
 				this.allowBuzz = false;
 				this.currPlayer = player;
-				player.conn.send({"type": "buzz"});
+				//$("#questionScreen").css("background-color", `hsl(${player.hue}, 100%, 80%)`);
+				player.conn.send({"type": "buzz", "message": "300"});
 				player.conn.send({
 					"type": "ques",
 					"message": {
@@ -82,14 +89,20 @@ class QuesState extends State {
 		} else if (data.type === "answer") {
 			if (player === this.currPlayer) {
 				if (data.message === this.correctAnswer) {
-					player.score += 10;
-					this.changeState(new PreQues());
+					player.score += this.quesVal;
+					if (player.score >= MAX_SCORE) {
+						this.changeState(new WinState(player));
+					} else {
+						this.changeState(new PreQues());
+					}
 				} else {
 					this.currPlayer = null;
-					player.score -= 10;
+					player.conn.send({"type": "buzz", "message": "1000"});
+					player.score -= this.quesVal;
 					clearTimeout(this.buzzTimeout);
 					this.penalizeBuzz = false;
 					this.allowBuzz = true;
+					this.changeState(new PreQues());
 				}
 			}
 		}
@@ -122,9 +135,25 @@ class WinState extends State {
 	}
 
 	public enter() {
-		$("#winDiv").html(this.winner.name);
+		$("#winDiv").css("color", `hsl(${this.winner.hue}, 100%, 50%)`).html(this.winner.name);
 		$("#winScreen").show();
+		this.winner.conn.send({"type": "win"});
+		send({"type": "playAgain"});
 
 		return this;
+	}
+
+	public processData(data, player: Client) {
+		if (data.type === "startGame") {
+			clients.forEach(c => {
+				c.score = 0;
+			});
+			this.changeState(new PreQues());
+		}
+	}
+
+	public changeState(s: State) {
+		$("#winScreen").hide();
+		super.changeState(s);
 	}
 }

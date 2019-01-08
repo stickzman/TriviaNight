@@ -118,6 +118,18 @@
             color: black;
             border: 2px solid black;
         }
+
+        #gameOverScreen {
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            height: 90vh;
+        }
+        #winDiv {
+            display: none;
+            font-weight: bold;
+            font-size: 35vmin;
+        }
     </style>
 
     <!--BIG RED BUTTON CSS-->
@@ -176,6 +188,10 @@
             <a class="answerBtn"></a>
             <a class="answerBtn"></a>
         </div>
+    </div>
+    <div id="gameOverScreen" class="state">
+        <div id="winDiv">You Win!</div>
+        <input type="button" id="playAgain" class="submitBtn" value="Play Again?">
     </div>
 
     <script type="text/javascript" src="lib/peer.min.js"></script>

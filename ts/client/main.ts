@@ -4,15 +4,13 @@ let port: string = window.location.port;
 let path: string = "/api";
 
 let peer, conn, currScreen = $("#connectScreen");
-let nickname: string, hue: number;
+let hue: number;
 
 function connect() {
     if ($("#roomCode").val().length == 0) {
         console.log("Please enter a Room Code");
         return;
     }
-
-    nickname = $("#nickname").val();
 
     conn = peer.connect($("#roomCode").val());
     $("#connectScreen input").attr("disabled", "disabled");
@@ -24,21 +22,30 @@ function connect() {
     setMouseDown("#buzzerScreen", () => {
         conn.send({"type": "buzz"});
     });
-    $(".answerBtn").on("click", function() {
+    setMouseDown(".answerBtn", function() {
         conn.send({
             "type": "answer",
-            "message": $(this).html()
+            "message": $(this).text()
         });
+    });
+    setMouseDown("#playAgain", () => {
+        conn.send({ "type": "startGame"});
     });
 
 
     conn.on("open", () => {
         currScreen.hide();
         currScreen = $("#begin").css("display", "flex");
+        $("#banner").html($("#nickname").val().toUpperCase()).css("display", "flex");
 
         conn.send({
             "type": "setName",
-            "name": $("#nickname").val()
+            "message": $("#nickname").val()
+        });
+        setColor(Math.floor(Math.random() * 361));
+        conn.send({
+            "type": "setColor",
+            "message": hue
         });
     });
 
@@ -46,26 +53,38 @@ function connect() {
         currScreen.hide();
         $("#banner").hide();
         $("#connectScreen input").removeAttr("disabled");
-        currScreen = $("connectScreen").css("display", "flex");
+        currScreen = $("#connectScreen").css("display", "flex");
     });
 
     conn.on("data", (data) => {
         switch (data.type) {
             case "enableBuzz":
+                $("#winDiv").hide();
                 currScreen.hide();
                 currScreen = $("#buzzerScreen").css("display", "flex");
                 break;
-            case "buzz": navigator.vibrate(300); break;
+            case "buzz":
+                navigator.vibrate(data.message);
+                break;
             case "ques":
-                currScreen.hide();
                 //Load quesion into div
                 $("#question").html(data.message.ques);
                 let answers = data.message.answers;
                 let elems = $(".answerBtn");
                 for (let i = 0; i < answers.length; i++) {
-                    elems.next().html(answers[i]);
+                    elems[i].innerText = answers[i];
                 }
+                currScreen.hide();
                 currScreen = $("#questionScreen").css("display", "flex");
+                break;
+            case "win":
+                console.log("WINNER");
+                currScreen.hide();
+                $("#winDiv").show();
+                break;
+            case "playAgain":
+                currScreen.hide();
+                currScreen = $("#gameOverScreen").css("display", "flex");
                 break;
         }
     });
@@ -92,6 +111,15 @@ function init() {
     $("#connectScreen").on("keypress", (e) => {
         (e.key === "Enter") ? $("#connBtn").click() : null;
     });
+}
+
+function setColor(h) {
+    hue = h;
+    $("#banner").css("background-color", 'hsl(' + hue + ', 100%, 50%)');
+    //Set text color based on luminance of background
+    let rgb = $("#banner").css("background-color").replace(/[^,\d]/g,"").split(",");
+    let lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+    $("#banner").css("color", (lum > 125) ? "black" : "white");
 }
 
 if (util.supports.data) {
