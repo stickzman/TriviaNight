@@ -3,8 +3,13 @@ declare var $: any;
 declare var Peer: any;
 declare var util: any;
 
+interface DataPackage {
+	type: string,
+	message?: any;
+}
+
 function shuffle(arr: any[]) {
-	let t, j;
+	let t: any, j: number;
 	for (let i = arr.length - 1; i > 0; i--) {
 		j = Math.floor(Math.random() * (i + 1));
 		t = arr[i];

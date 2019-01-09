@@ -1,12 +1,13 @@
 /// <reference path="../common.ts" />
+/// <reference path="helper.ts" />
 abstract class State {
-	public processData(data, player: Client): void { }
+	public processData(data: DataPackage, player: Client): void { }
 	public enter(): State { return this; }
 	public changeState(s: State): void { state = s.enter(); }
 }
 
 class InitState extends State {
-	public processData(data, player: Client) {
+	public processData(data: DataPackage, player: Client) {
 		if (data.type === "startGame") {
 			peer.disconnect();
 			this.changeState(new PreQues());
@@ -27,7 +28,7 @@ class InitState extends State {
 class PreQues extends State {
 	public enter(): State {
 		send({"type": "enableBuzz"});
-		getNextQuestion().then((ques) => {
+		getNextQuestion().then((ques: QuestionData) => {
 			switch(ques.difficulty.toLowerCase()) {
 				case "easy": $("#difficulty").css("color", "green").html("Easy"); break;
 				case "medium": $("#difficulty").css("color", "yellow").html("Medium"); break;
@@ -53,13 +54,13 @@ class PreQues extends State {
 class QuesState extends State {
 	private allowBuzz: boolean = true;
 	private penalizeBuzz: boolean = false;
-	private buzzTimeout; //Timer to set penalizeBuzz
+	private buzzTimeout: any; //Timer to set penalizeBuzz
 	private answers: string[];
 	private correctAnswer: string;
 	private currPlayer: Client;
 	private quesVal: number;
 
-	constructor(private ques) {
+	constructor(private ques: QuestionData) {
 		super();
 		this.correctAnswer = ques.correct_answer;
 		switch (ques.difficulty.substr(0, 1)) {
@@ -69,7 +70,7 @@ class QuesState extends State {
 		}
 	}
 
-	public processData(data, player: Client) {
+	public processData(data: DataPackage, player: Client) {
 		if (data.type === "buzz") {
 			if (this.allowBuzz) {
 				this.allowBuzz = false;
@@ -146,7 +147,7 @@ class WinState extends State {
 		return this;
 	}
 
-	public processData(data, player: Client) {
+	public processData(data: DataPackage, player: Client) {
 		if (data.type === "startGame") {
 			clients.forEach(c => {
 				c.score = 0;

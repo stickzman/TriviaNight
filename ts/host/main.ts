@@ -5,10 +5,9 @@ let host: string = window.location.hostname;
 let port: string = window.location.port;
 let path: string = "/api";
 
-let peer, state: State = new InitState().enter();
 const MAX_SCORE = 100;
-
 let clients: Client[] = [];
+let peer: any, state: State = new InitState().enter();
 
 //API Set up --------------------------
 let sessionToken: string = localStorage.getItem("sessionToken");
@@ -41,11 +40,11 @@ async function getNextQuestion() {
 }
 //--------------------------------------
 
-function onConnect(conn) {
+function onConnect(conn: any) {
     let client: Client = new Client(conn);
     clients.push(client);
 
-    conn.on("data", (data) => { state.processData(data, client); });
+    conn.on("data", (data: DataPackage) => { state.processData(data, client); });
 
     conn.on("close", () => {
         clients = clients.filter(c => c !== client);
@@ -56,13 +55,13 @@ function init() {
     let id = Math.floor((Math.random() * 10000)).toString().padStart(4, "0");
     peer = new Peer(id, {host: host, port: port, path: path});
 
-    peer.on("open", (id) => {
+    peer.on("open", (id: string) => {
         $("#roomCode").append(id)
     });
 
     peer.on("connection", onConnect);
 
-    peer.on("error", (err) => {
+    peer.on("error", (err: any) => {
         if (err.type === "unavailable-id"){
             init(); //Generate a new random ID and try again
         } else {
@@ -74,7 +73,7 @@ function init() {
 }
 
 //Send data to all clients
-function send(data) {
+function send(data: DataPackage) {
     clients.forEach((client) => { client.conn.send(data); });
 }
 

@@ -155,6 +155,7 @@ function decodeHTML(html) {
 }
 ;
 /// <reference path="../common.ts" />
+/// <reference path="helper.ts" />
 var State = /** @class */ (function () {
     function State() {
     }
@@ -337,9 +338,9 @@ var WinState = /** @class */ (function (_super) {
 var host = window.location.hostname;
 var port = window.location.port;
 var path = "/api";
-var peer, state = new InitState().enter();
 var MAX_SCORE = 100;
 var clients = [];
+var peer, state = new InitState().enter();
 //API Set up --------------------------
 var sessionToken = localStorage.getItem("sessionToken");
 if (sessionToken === null) {

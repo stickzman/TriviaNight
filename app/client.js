@@ -31,12 +31,20 @@ function decodeHTML(html) {
     return txt.value;
 }
 ;
+function setColor(h) {
+    if (h > 360)
+        h = 360;
+    if (h < 0)
+        h = 0;
+    hue = h;
+    $("#banner").css("background-color", 'hsl(' + hue + ', 100%, 50%)');
+    //Set text color based on luminance of background
+    var rgb = $("#banner").css("background-color").replace(/[^,\d]/g, "").split(",");
+    var lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+    $("#banner").css("color", (lum > 125) ? "black" : "white");
+}
 /// <reference path="../common.ts" />
-var host = window.location.hostname;
-var port = window.location.port;
-var path = "/api";
-var peer, conn, currScreen = $("#connectScreen");
-var hue;
+/// <reference path="helper.ts" />
 function connect() {
     if ($("#roomCode").val().length == 0) {
         console.log("Please enter a Room Code");
@@ -113,6 +121,14 @@ function connect() {
         }
     });
 }
+/// <reference path="../common.ts" />
+/// <reference path="helper.ts" />
+/// <reference path="connection.ts" />
+var host = window.location.hostname;
+var port = window.location.port;
+var path = "/api";
+var peer, conn, currScreen = $("#connectScreen");
+var hue;
 function init() {
     peer = new Peer({ host: host, port: port, path: path });
     peer.on("error", function (err) {
@@ -131,14 +147,6 @@ function init() {
     $("#connectScreen").on("keypress", function (e) {
         (e.key === "Enter") ? $("#connBtn").click() : null;
     });
-}
-function setColor(h) {
-    hue = h;
-    $("#banner").css("background-color", 'hsl(' + hue + ', 100%, 50%)');
-    //Set text color based on luminance of background
-    var rgb = $("#banner").css("background-color").replace(/[^,\d]/g, "").split(",");
-    var lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
-    $("#banner").css("color", (lum > 125) ? "black" : "white");
 }
 if (util.supports.data) {
     init();

@@ -8,12 +8,12 @@ class Client {
 		if (_hue !== undefined) this.hue = _hue;
 		this.elem.appendTo("#pList");
 
-		conn.on("data", (data) => {
+		conn.on("data", (data: DataPackage) => {
 	        if (data.type === "setName") {
 	            this.name = data.message;
 	        }
 	    });
-		conn.on("data", (data) => {
+		conn.on("data", (data: DataPackage) => {
 	        if (data.type === "setColor") {
 	            this.hue = data.message;
 	        }
