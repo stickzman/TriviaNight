@@ -170,6 +170,7 @@ var InitState = /** @class */ (function (_super) {
     }
     InitState.prototype.processData = function (data, player) {
         if (data.type === "startGame") {
+            peer.disconnect();
             this.changeState(new PreQues());
         }
     };

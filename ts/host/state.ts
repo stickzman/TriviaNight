@@ -8,6 +8,7 @@ abstract class State {
 class InitState extends State {
 	public processData(data, player: Client) {
 		if (data.type === "startGame") {
+			peer.disconnect();
 			this.changeState(new PreQues());
 		}
 	}
