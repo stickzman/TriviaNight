@@ -1,3 +1,5 @@
+var MOUSE_DOWN = (window.onpointerdown !== undefined) ? "pointerdown" : "mousedown touchdown";
+var MOUSE_UP = (window.onpointerup !== undefined) ? "pointerup" : "mouseup touchup";
 function shuffle(arr) {
     var t, j;
     for (var i = arr.length - 1; i > 0; i--) {
@@ -5,24 +7,6 @@ function shuffle(arr) {
         t = arr[i];
         arr[i] = arr[j];
         arr[j] = t;
-    }
-}
-function setMouseDown(selector, callbackFunc) {
-    if (window.onpointerdown === undefined) {
-        $(selector).on("mousedown", callbackFunc);
-        $(selector).on("touchdown", callbackFunc);
-    }
-    else {
-        $(selector).on("pointerdown", callbackFunc);
-    }
-}
-function setMouseUp(selector, callbackFunc) {
-    if (window.onpointerup === undefined) {
-        $(selector).on("mouseup", callbackFunc);
-        $(selector).on("touchup", callbackFunc);
-    }
-    else {
-        $(selector).on("pointerup", callbackFunc);
     }
 }
 function decodeHTML(html) {
@@ -56,16 +40,16 @@ function connect() {
     $("#startGame").on("click", function () {
         conn.send({ "type": "startGame" });
     });
-    setMouseDown("#buzzerScreen", function () {
+    $("#buzzerScreen").on(MOUSE_DOWN, function () {
         conn.send({ "type": "buzz" });
     });
-    setMouseDown(".answerBtn", function () {
+    $(".answerBtn").on(MOUSE_DOWN, function () {
         conn.send({
             "type": "answer",
             "message": $(this).text()
         });
     });
-    setMouseDown("#playAgain", function () {
+    $("#playAgain").on(MOUSE_DOWN, function () {
         conn.send({ "type": "startGame" });
     });
     conn.on("open", function () {

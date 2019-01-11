@@ -13,16 +13,16 @@ function connect() {
     $("#startGame").on("click", () => {
         conn.send({ "type": "startGame"});
     });
-    setMouseDown("#buzzerScreen", () => {
+    $("#buzzerScreen").on(MOUSE_DOWN, () => {
         conn.send({"type": "buzz"});
     });
-    setMouseDown(".answerBtn", function() {
+    $(".answerBtn").on(MOUSE_DOWN, function() {
         conn.send({
             "type": "answer",
             "message": $(this).text()
         });
     });
-    setMouseDown("#playAgain", () => {
+    $("#playAgain").on(MOUSE_DOWN, () => {
         conn.send({ "type": "startGame"});
     });
 

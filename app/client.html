@@ -211,24 +211,12 @@
     <script type="text/javascript" src="client.js"></script>
     <script type="text/javascript">
         //Handle buzzer press animation
-        (function() {
-            function mouseDown() {
-                $("#buzzerScreen .buzzer").addClass("pressed");
-            }
+        $("#buzzerScreen .buzzer").on(MOUSE_DOWN, function() {
+            $(this).addClass("pressed");
+        });
 
-            function mouseUp() {
-                $("#buzzerScreen .buzzer").removeClass("pressed");
-            }
-
-            if (window.onpointerdown === undefined) {
-                $("#buzzerScreen").on("mousedown", mouseDown);
-                $("#buzzerScreen").on("touchdown", mouseDown);
-                $("#buzzerScreen").on("mouseup", mouseUp);
-                $("#buzzerScreen").on("touchup", mouseUp);
-            } else {
-                $("#buzzerScreen").on("pointerdown", mouseDown);
-                $("#buzzerScreen").on("pointerup", mouseUp);
-            }
-        }());
+        $("#buzzerScreen .buzzer").on(MOUSE_UP, function() {
+            $(this).removeClass("pressed");
+        });
     </script>
 </body>

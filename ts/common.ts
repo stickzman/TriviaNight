@@ -3,6 +3,9 @@ declare var $: any;
 declare var Peer: any;
 declare var util: any;
 
+const MOUSE_DOWN = (window.onpointerdown !== undefined) ? "pointerdown" : "mousedown touchdown";
+const MOUSE_UP = (window.onpointerup !== undefined) ? "pointerup" : "mouseup touchup";
+
 interface DataPackage {
 	type: string,
 	message?: any;
@@ -15,24 +18,6 @@ function shuffle(arr: any[]) {
 		t = arr[i];
 		arr[i] = arr[j];
 		arr[j] = t;
-	}
-}
-
-function setMouseDown(selector: string, callbackFunc: Function) {
-	if (window.onpointerdown === undefined) {
-		$(selector).on("mousedown", callbackFunc);
-		$(selector).on("touchdown", callbackFunc);
-	} else {
-		$(selector).on("pointerdown", callbackFunc);
-	}
-}
-
-function setMouseUp(selector: string, callbackFunc: Function) {
-	if (window.onpointerup === undefined) {
-		$(selector).on("mouseup", callbackFunc);
-		$(selector).on("touchup", callbackFunc);
-	} else {
-		$(selector).on("pointerup", callbackFunc);
 	}
 }
 
