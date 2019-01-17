@@ -94,7 +94,6 @@ function connect() {
                 currScreen = $("#questionScreen").css("display", "flex");
                 break;
             case "win":
-                console.log("WINNER");
                 currScreen.hide();
                 $("#winDiv").show();
                 break;

@@ -30,9 +30,9 @@ class PreQues extends State {
 		send({"type": "enableBuzz"});
 		getNextQuestion().then((ques: QuestionData) => {
 			switch(ques.difficulty.toLowerCase()) {
-				case "easy": $("#difficulty").css("color", "green").html("Easy"); break;
-				case "medium": $("#difficulty").css("color", "yellow").html("Medium"); break;
-				case "hard": $("#difficulty").css("color", "red").html("Hard"); break;
+				case "easy": $("#difficulty").css("color", "hsl(100, 75%, 50%)").html("Easy"); break;
+				case "medium": $("#difficulty").css("color", "hsl(50, 100%, 55%)").html("Medium"); break;
+				case "hard": $("#difficulty").css("color", "hsl(0, 75%, 50%)").html("Hard"); break;
 			}
 			$("#category").html(ques.category);
 			$("#questionInfo").css("display", "flex");
@@ -90,22 +90,38 @@ class QuesState extends State {
 			}
 		} else if (data.type === "answer") {
 			if (player === this.currPlayer) {
+				this.currPlayer = null;
+				let elem = $(`#answers > ul > li:contains(${data.message})`)
+					.addClass("selected");
 				if (data.message === this.correctAnswer) {
-					player.score += this.quesVal;
-					if (player.score >= MAX_SCORE) {
-						this.changeState(new WinState(player));
-					} else {
-						this.changeState(new PreQues());
-					}
+					delay(2000)() //Wait 2 seconds
+					.then(() => {
+						elem.addClass("correct");
+					})
+					.then(delay(1500)) //Wait 1 second
+					.then(() => {
+						player.score += this.quesVal;
+						if (player.score >= MAX_SCORE) {
+							this.changeState(new WinState(player));
+						} else {
+							this.changeState(new PreQues());
+						}
+					});
 				} else {
-					this.currPlayer = null;
-					$("#questionScreen").css("box-shadow", "");
-					player.conn.send({"type": "buzz", "message": "1000"});
-					player.score -= this.quesVal;
-					clearTimeout(this.buzzTimeout);
-					this.penalizeBuzz = false;
-					this.allowBuzz = true;
-					this.changeState(new PreQues());
+					delay(2000)() //Wait 2 seconds
+					.then(() => {
+						elem.addClass("incorrect");
+					})
+					.then(delay(1500)) //Wait 1 second
+					.then(() => {
+						$("#questionScreen").css("box-shadow", "");
+						player.conn.send({"type": "buzz", "message": "1000"});
+						player.score -= this.quesVal;
+						clearTimeout(this.buzzTimeout);
+						this.penalizeBuzz = false;
+						this.allowBuzz = true;
+						this.changeState(new PreQues());
+					});
 				}
 			}
 		}

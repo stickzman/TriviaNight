@@ -26,3 +26,12 @@ function decodeHTML(html: string): string {
 	txt.innerHTML = html;
 	return txt.value;
 };
+
+//Return a function that constructs a Promise which waits specified ms to resolve
+function delay(duration: number) {
+	return () => {
+		return new Promise((resolve) => {
+			setTimeout(() => { resolve(); }, duration);
+		});
+	}
+}

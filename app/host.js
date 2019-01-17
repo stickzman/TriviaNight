@@ -121,6 +121,8 @@ var Client = /** @class */ (function () {
     });
     return Client;
 }());
+var MOUSE_DOWN = (window.onpointerdown !== undefined) ? "pointerdown" : "mousedown touchdown";
+var MOUSE_UP = (window.onpointerup !== undefined) ? "pointerup" : "mouseup touchup";
 function shuffle(arr) {
     var t, j;
     for (var i = arr.length - 1; i > 0; i--) {
@@ -130,30 +132,20 @@ function shuffle(arr) {
         arr[j] = t;
     }
 }
-function setMouseDown(selector, callbackFunc) {
-    if (window.onpointerdown === undefined) {
-        $(selector).on("mousedown", callbackFunc);
-        $(selector).on("touchdown", callbackFunc);
-    }
-    else {
-        $(selector).on("pointerdown", callbackFunc);
-    }
-}
-function setMouseUp(selector, callbackFunc) {
-    if (window.onpointerup === undefined) {
-        $(selector).on("mouseup", callbackFunc);
-        $(selector).on("touchup", callbackFunc);
-    }
-    else {
-        $(selector).on("pointerup", callbackFunc);
-    }
-}
 function decodeHTML(html) {
     var txt = document.createElement('textarea');
     txt.innerHTML = html;
     return txt.value;
 }
 ;
+//Return a function that constructs a Promise which waits specified ms to resolve
+function delay(duration) {
+    return function () {
+        return new Promise(function (resolve) {
+            setTimeout(function () { resolve(); }, duration);
+        });
+    };
+}
 /// <reference path="../common.ts" />
 /// <reference path="helper.ts" />
 var State = /** @class */ (function () {
@@ -196,13 +188,13 @@ var PreQues = /** @class */ (function (_super) {
         getNextQuestion().then(function (ques) {
             switch (ques.difficulty.toLowerCase()) {
                 case "easy":
-                    $("#difficulty").css("color", "green").html("Easy");
+                    $("#difficulty").css("color", "hsl(100, 75%, 50%)").html("Easy");
                     break;
                 case "medium":
-                    $("#difficulty").css("color", "yellow").html("Medium");
+                    $("#difficulty").css("color", "hsl(50, 100%, 55%)").html("Medium");
                     break;
                 case "hard":
-                    $("#difficulty").css("color", "red").html("Hard");
+                    $("#difficulty").css("color", "hsl(0, 75%, 50%)").html("Hard");
                     break;
             }
             $("#category").html(ques.category);
@@ -263,24 +255,40 @@ var QuesState = /** @class */ (function (_super) {
         }
         else if (data.type === "answer") {
             if (player === this.currPlayer) {
+                this.currPlayer = null;
+                var elem_1 = $("#answers > ul > li:contains(" + data.message + ")")
+                    .addClass("selected");
                 if (data.message === this.correctAnswer) {
-                    player.score += this.quesVal;
-                    if (player.score >= MAX_SCORE) {
-                        this.changeState(new WinState(player));
-                    }
-                    else {
-                        this.changeState(new PreQues());
-                    }
+                    delay(2000)() //Wait 2 seconds
+                        .then(function () {
+                        elem_1.addClass("correct");
+                    })
+                        .then(delay(1500)) //Wait 1 second
+                        .then(function () {
+                        player.score += _this.quesVal;
+                        if (player.score >= MAX_SCORE) {
+                            _this.changeState(new WinState(player));
+                        }
+                        else {
+                            _this.changeState(new PreQues());
+                        }
+                    });
                 }
                 else {
-                    this.currPlayer = null;
-                    $("#questionScreen").css("box-shadow", "");
-                    player.conn.send({ "type": "buzz", "message": "1000" });
-                    player.score -= this.quesVal;
-                    clearTimeout(this.buzzTimeout);
-                    this.penalizeBuzz = false;
-                    this.allowBuzz = true;
-                    this.changeState(new PreQues());
+                    delay(2000)() //Wait 2 seconds
+                        .then(function () {
+                        elem_1.addClass("incorrect");
+                    })
+                        .then(delay(1500)) //Wait 1 second
+                        .then(function () {
+                        $("#questionScreen").css("box-shadow", "");
+                        player.conn.send({ "type": "buzz", "message": "1000" });
+                        player.score -= _this.quesVal;
+                        clearTimeout(_this.buzzTimeout);
+                        _this.penalizeBuzz = false;
+                        _this.allowBuzz = true;
+                        _this.changeState(new PreQues());
+                    });
                 }
             }
         }
@@ -434,7 +442,7 @@ function init() {
         }
         else {
             //Display error
-            $("#roomCode").css("font-size", "35pt").css("color", "red").html(err);
+            $("#roomCode").css({ "font-size": "35pt", "color": "red" }).html(err);
             throw err;
         }
     });
@@ -447,6 +455,7 @@ if (util.supports.data) {
     init();
 }
 else {
-    console.log("Sorry, your browser version is not supported.");
+    $("#roomCode").css({ "font-size": "35pt", "color": "red" })
+        .html("Sorry, your browser version is not supported.");
 }
 //# sourceMappingURL=host.js.map

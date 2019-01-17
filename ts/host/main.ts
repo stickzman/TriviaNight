@@ -66,7 +66,7 @@ function init() {
             init(); //Generate a new random ID and try again
         } else {
             //Display error
-            $("#roomCode").css("font-size", "35pt").css("color", "red").html(err);
+            $("#roomCode").css({"font-size": "35pt", "color": "red"}).html(err);
             throw err;
         }
     });
@@ -80,5 +80,6 @@ function send(data: DataPackage) {
 if (util.supports.data) {
     init();
 } else {
-    console.log("Sorry, your browser version is not supported.");
+    $("#roomCode").css({"font-size": "35pt", "color": "red"})
+        .html("Sorry, your browser version is not supported.");
 }
