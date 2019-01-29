@@ -3,14 +3,17 @@ declare var $: any;
 declare var Peer: any;
 declare var util: any;
 
+//Set event strings to be used by jQuery
 const MOUSE_DOWN = (window.onpointerdown !== undefined) ? "pointerdown" : "mousedown touchdown";
 const MOUSE_UP = (window.onpointerup !== undefined) ? "pointerup" : "mouseup touchup";
 
+//Structure of data passed between peering clients
 interface DataPackage {
 	type: string,
 	message?: any;
 }
 
+//Shuffle array
 function shuffle(arr: any[]) {
 	let t: any, j: number;
 	for (let i = arr.length - 1; i > 0; i--) {

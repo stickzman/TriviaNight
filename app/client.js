@@ -1,5 +1,7 @@
+//Set event strings to be used by jQuery
 var MOUSE_DOWN = (window.onpointerdown !== undefined) ? "pointerdown" : "mousedown touchdown";
 var MOUSE_UP = (window.onpointerup !== undefined) ? "pointerup" : "mouseup touchup";
+//Shuffle array
 function shuffle(arr) {
     var t, j;
     for (var i = arr.length - 1; i > 0; i--) {
@@ -15,6 +17,14 @@ function decodeHTML(html) {
     return txt.value;
 }
 ;
+//Return a function that constructs a Promise which waits specified ms to resolve
+function delay(duration) {
+    return function () {
+        return new Promise(function (resolve) {
+            setTimeout(function () { resolve(); }, duration);
+        });
+    };
+}
 function setColor(h) {
     if (h > 360)
         h = 360;

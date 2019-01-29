@@ -38,15 +38,17 @@ async function getNextQuestion() {
     }
     return res.results[0];
 }
-//--------------------------------------
+//----------------------------------------------------------------------------
 
 function onConnect(conn: any) {
     let client: Client = new Client(conn);
     clients.push(client);
 
+    //Send all received data to the current state's data handler
     conn.on("data", (data: DataPackage) => { state.processData(data, client); });
 
     conn.on("close", () => {
+        //Remove current client from list of clients
         clients = clients.filter(c => c !== client);
     });
 }

@@ -55,8 +55,8 @@ var Client = /** @class */ (function () {
         this._name = _name;
         this._score = _score;
         this._hue = _hue;
-        this.MAX_HEIGHT = 25; //in vh
-        this.MIN_HEIGHT = 8; //in vh
+        this.MAX_HEIGHT = 25; //of score bar, in vh
+        this.MIN_HEIGHT = 8; //of score bar, in vh
         this.elem = $("<div id=\"pID_" + conn.id + "\"><p class=\"name\">" + _name + "</p><p class=\"score\">" + _score + "</p></div>");
         if (_hue !== undefined)
             this.hue = _hue;
@@ -121,8 +121,10 @@ var Client = /** @class */ (function () {
     });
     return Client;
 }());
+//Set event strings to be used by jQuery
 var MOUSE_DOWN = (window.onpointerdown !== undefined) ? "pointerdown" : "mousedown touchdown";
 var MOUSE_UP = (window.onpointerup !== undefined) ? "pointerup" : "mouseup touchup";
+//Shuffle array
 function shuffle(arr) {
     var t, j;
     for (var i = arr.length - 1; i > 0; i--) {
@@ -153,23 +155,28 @@ var State = /** @class */ (function () {
     }
     State.prototype.processData = function (data, player) { };
     State.prototype.enter = function () { return this; };
+    //Perform clean up, update current state to the new state, and
+    //kickoff initial code of new state
     State.prototype.changeState = function (s) { state = s.enter(); };
     return State;
 }());
+//Main Menu Screen
 var InitState = /** @class */ (function (_super) {
     __extends(InitState, _super);
     function InitState() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    InitState.prototype.processData = function (data, player) {
-        if (data.type === "startGame") {
-            peer.disconnect();
-            this.changeState(new PreQues());
-        }
-    };
     InitState.prototype.enter = function () {
         $("#menu").css("display", "flex");
         return this;
+    };
+    InitState.prototype.processData = function (data, player) {
+        if (data.type === "startGame") {
+            //Disconnect from peering server because
+            //we're now connected to all clients for this game
+            peer.disconnect();
+            this.changeState(new PreQues()); //Load 1st Question
+        }
     };
     InitState.prototype.changeState = function (s) {
         $("#menu").hide();
@@ -177,6 +184,7 @@ var InitState = /** @class */ (function (_super) {
     };
     return InitState;
 }(State));
+//Difficulty & Category Screen
 var PreQues = /** @class */ (function (_super) {
     __extends(PreQues, _super);
     function PreQues() {
@@ -184,8 +192,10 @@ var PreQues = /** @class */ (function (_super) {
     }
     PreQues.prototype.enter = function () {
         var _this = this;
-        send({ "type": "enableBuzz" });
-        getNextQuestion().then(function (ques) {
+        send({ "type": "enableBuzz" }); //Enable the player buzzers
+        getNextQuestion()
+            .then(function (ques) {
+            //Update the UI with difficulty & category name
             switch (ques.difficulty.toLowerCase()) {
                 case "easy":
                     $("#difficulty").css("color", "hsl(100, 75%, 50%)").html("Easy");
@@ -199,6 +209,7 @@ var PreQues = /** @class */ (function (_super) {
             }
             $("#category").html(ques.category);
             $("#questionInfo").css("display", "flex");
+            //Move to Question Screen after 2 seconds
             setTimeout(function () {
                 _this.changeState(new QuesState(ques));
             }, 2000);
@@ -211,12 +222,13 @@ var PreQues = /** @class */ (function (_super) {
     };
     return PreQues;
 }(State));
+//Question Screen
 var QuesState = /** @class */ (function (_super) {
     __extends(QuesState, _super);
     function QuesState(ques) {
         var _this = _super.call(this) || this;
         _this.ques = ques;
-        _this.allowBuzz = true;
+        _this.ignoreBuzz = false;
         _this.penalizeBuzz = false;
         _this.correctAnswer = ques.correct_answer;
         switch (ques.difficulty.substr(0, 1)) {
@@ -232,68 +244,8 @@ var QuesState = /** @class */ (function (_super) {
         }
         return _this;
     }
-    QuesState.prototype.processData = function (data, player) {
-        var _this = this;
-        if (data.type === "buzz") {
-            if (this.allowBuzz) {
-                this.allowBuzz = false;
-                this.currPlayer = player;
-                $("#questionScreen").css("box-shadow", "inset 0 0 14vmin hsl(" + player.hue + ", 100%, 50%)");
-                player.conn.send({ "type": "buzz", "message": "300" });
-                player.conn.send({
-                    "type": "ques",
-                    "message": {
-                        "ques": this.ques.question,
-                        "answers": this.answers
-                    }
-                });
-                this.buzzTimeout = setTimeout(function () { _this.penalizeBuzz = true; }, 3000);
-            }
-            else if (this.penalizeBuzz) {
-                player.score -= 10;
-            }
-        }
-        else if (data.type === "answer") {
-            if (player === this.currPlayer) {
-                this.currPlayer = null;
-                var elem_1 = $("#answers > ul > li:contains(" + data.message + ")")
-                    .addClass("selected");
-                if (data.message === this.correctAnswer) {
-                    delay(2000)() //Wait 2 seconds
-                        .then(function () {
-                        elem_1.addClass("correct");
-                    })
-                        .then(delay(1500)) //Wait 1 second
-                        .then(function () {
-                        player.score += _this.quesVal;
-                        if (player.score >= MAX_SCORE) {
-                            _this.changeState(new WinState(player));
-                        }
-                        else {
-                            _this.changeState(new PreQues());
-                        }
-                    });
-                }
-                else {
-                    delay(2000)() //Wait 2 seconds
-                        .then(function () {
-                        elem_1.addClass("incorrect");
-                    })
-                        .then(delay(1500)) //Wait 1 second
-                        .then(function () {
-                        $("#questionScreen").css("box-shadow", "");
-                        player.conn.send({ "type": "buzz", "message": "1000" });
-                        player.score -= _this.quesVal;
-                        clearTimeout(_this.buzzTimeout);
-                        _this.penalizeBuzz = false;
-                        _this.allowBuzz = true;
-                        _this.changeState(new PreQues());
-                    });
-                }
-            }
-        }
-    };
     QuesState.prototype.enter = function () {
+        //Reveal question, shuffle the answers, and display
         this.answers = this.ques.incorrect_answers.slice();
         this.answers.push(this.ques.correct_answer);
         shuffle(this.answers);
@@ -305,6 +257,77 @@ var QuesState = /** @class */ (function (_super) {
         $("#questionScreen").show();
         return this;
     };
+    QuesState.prototype.processData = function (data, player) {
+        var _this = this;
+        if (data.type === "buzz") {
+            if (this.ignoreBuzz)
+                return;
+            if (this.penalizeBuzz) {
+                player.score -= 10;
+            }
+            else {
+                this.ignoreBuzz = true;
+                this.currPlayer = player;
+                //Highlight viewport with current player's color
+                $("#questionScreen").css("box-shadow", "inset 0 0 14vmin hsl(" + player.hue + ", 100%, 50%)");
+                //Vibrate phone of current player and send them the question
+                player.conn.send({ "type": "buzz", "message": "300" });
+                player.conn.send({
+                    "type": "ques",
+                    "message": {
+                        "ques": this.ques.question,
+                        "answers": this.answers
+                    }
+                });
+                //Enter grace period before penalizing buzzes
+                this.buzzTimeout = setTimeout(function () { _this.penalizeBuzz = true; }, 2000);
+            }
+        }
+        else if (data.type === "answer") {
+            if (player === this.currPlayer) {
+                this.currPlayer = null; //Protect against double submission
+                var elem_1 = $("#answers > ul > li:contains(" + data.message + ")")
+                    .addClass("selected");
+                if (data.message === this.correctAnswer) {
+                    //Start correct answer animation
+                    delay(2000)() //Wait 2 seconds
+                        .then(function () {
+                        elem_1.addClass("correct");
+                    })
+                        .then(delay(1500)) //Wait 1.5 seconds
+                        .then(function () {
+                        //Add points then load next question or show winner
+                        player.score += _this.quesVal;
+                        clearTimeout(_this.buzzTimeout); //Cancel penalizeBuzz timer
+                        if (player.score >= MAX_SCORE) {
+                            _this.changeState(new WinState(player));
+                        }
+                        else {
+                            _this.changeState(new PreQues());
+                        }
+                    });
+                }
+                else {
+                    //Start incorrect answer animation
+                    delay(2000)() //Wait 2 seconds
+                        .then(function () {
+                        elem_1.addClass("incorrect");
+                    })
+                        .then(delay(1500))
+                        .then(function () {
+                        //Subtract points and load next question
+                        $("#questionScreen").css("box-shadow", "");
+                        player.conn.send({ "type": "buzz", "message": "1000" });
+                        player.score -= _this.quesVal;
+                        clearTimeout(_this.buzzTimeout); //Cancel penalizeBuzz timer
+                        _this.penalizeBuzz = false;
+                        _this.ignoreBuzz = false;
+                        _this.changeState(new PreQues());
+                    });
+                }
+            }
+        }
+    };
     QuesState.prototype.changeState = function (s) {
         $("#questionScreen").css("box-shadow", "");
         $("#questionScreen").hide();
@@ -312,6 +335,7 @@ var QuesState = /** @class */ (function (_super) {
     };
     return QuesState;
 }(State));
+//Winner/Start Over Screen
 var WinState = /** @class */ (function (_super) {
     __extends(WinState, _super);
     function WinState(winner) {
@@ -328,6 +352,7 @@ var WinState = /** @class */ (function (_super) {
     };
     WinState.prototype.processData = function (data, player) {
         if (data.type === "startGame") {
+            //Reset player scores and load next question
             clients.forEach(function (c) {
                 c.score = 0;
             });
@@ -420,12 +445,14 @@ function getNextQuestion() {
         });
     });
 }
-//--------------------------------------
+//----------------------------------------------------------------------------
 function onConnect(conn) {
     var client = new Client(conn);
     clients.push(client);
+    //Send all received data to the current state's data handler
     conn.on("data", function (data) { state.processData(data, client); });
     conn.on("close", function () {
+        //Remove current client from list of clients
         clients = clients.filter(function (c) { return c !== client; });
     });
 }

@@ -1,7 +1,7 @@
 class Client {
 	public elem;
-	readonly MAX_HEIGHT = 25; //in vh
-	readonly MIN_HEIGHT = 8;  //in vh
+	readonly MAX_HEIGHT = 25; //of score bar, in vh
+	readonly MIN_HEIGHT = 8;  //of score bar, in vh
 
 	constructor(public conn, public _name: string = "", public _score: number = 0, public _hue?: number) {
 		this.elem = $(`<div id="pID_${conn.id}"><p class="name">${_name}</p><p class="score">${_score}</p></div>`);
