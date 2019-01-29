@@ -13,7 +13,7 @@ function init() {
 
     peer.on("error", (err) => {
         if (err.type === "invalid-id" || err.type === "peer-unavailable") {
-            console.log("Invalid Room Code");
+            alert("Invalid Room Code");
             $("#connectScreen input").removeAttr("disabled");
         } else {
             throw err;
