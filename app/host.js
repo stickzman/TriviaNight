@@ -312,12 +312,12 @@ var QuesState = /** @class */ (function (_super) {
                     delay(2000)() //Wait 2 seconds
                         .then(function () {
                         elem_1.addClass("incorrect");
+                        player.conn.send({ "type": "buzz", "message": "1000" });
                     })
                         .then(delay(1500))
                         .then(function () {
                         //Subtract points and load next question
                         $("#questionScreen").css("box-shadow", "");
-                        player.conn.send({ "type": "buzz", "message": "1000" });
                         player.score -= _this.quesVal;
                         clearTimeout(_this.buzzTimeout); //Cancel penalizeBuzz timer
                         _this.penalizeBuzz = false;

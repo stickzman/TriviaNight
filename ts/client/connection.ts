@@ -44,10 +44,8 @@ function connect() {
     });
 
     conn.on("close", () => {
-        currScreen.hide();
-        $("#banner").hide();
-        $("#connectScreen input").removeAttr("disabled");
-        currScreen = $("#connectScreen").css("display", "flex");
+        alert("Connection to host lost");
+        window.location.reload();
     });
 
     conn.on("data", (data: DataPackage) => {

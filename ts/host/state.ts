@@ -145,12 +145,12 @@ class QuesState extends State {
 					delay(2000)() //Wait 2 seconds
 					.then(() => {
 						elem.addClass("incorrect");
+						player.conn.send({"type": "buzz", "message": "1000"});
 					})
 					.then(delay(1500))
 					.then(() => {
 						//Subtract points and load next question
 						$("#questionScreen").css("box-shadow", "");
-						player.conn.send({"type": "buzz", "message": "1000"});
 						player.score -= this.quesVal;
 						clearTimeout(this.buzzTimeout); //Cancel penalizeBuzz timer
 						this.penalizeBuzz = false;

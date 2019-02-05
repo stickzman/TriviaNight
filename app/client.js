@@ -77,10 +77,8 @@ function connect() {
         });
     });
     conn.on("close", function () {
-        currScreen.hide();
-        $("#banner").hide();
-        $("#connectScreen input").removeAttr("disabled");
-        currScreen = $("#connectScreen").css("display", "flex");
+        alert("Connection to host lost");
+        window.location.reload();
     });
     conn.on("data", function (data) {
         switch (data.type) {
